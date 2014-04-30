@@ -395,4 +395,4 @@
 386	i386	wait_for_ts_release	sys_wait_for_ts_release
 387	i386	release_ts		sys_release_ts
 388	i386	null_call		sys_null_call
-
+389	i386	get_current_budget	sys_get_current_budget
