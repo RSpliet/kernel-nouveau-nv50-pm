@@ -418,6 +418,9 @@
 #define __NR_membarrier			(__NR_SYSCALL_BASE+389)
 #define __NR_mlock2			(__NR_SYSCALL_BASE+390)
 
+#define __NR_LITMUS (__NR_SYSCALL_BASE+391)
+#include <litmus/unistd_32.h>
+
 /*
  * The following SWIs are ARM private.
  */

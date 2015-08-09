@@ -399,7 +399,20 @@
 		CALL(sys_execveat)
 		CALL(sys_userfaultfd)
 		CALL(sys_membarrier)
-		CALL(sys_mlock2)
+/* 390 */	CALL(sys_mlock2)
+		CALL(sys_set_rt_task_param)
+		CALL(sys_get_rt_task_param)
+		CALL(sys_complete_job)
+		CALL(sys_od_open)
+/* 395 */   CALL(sys_od_close)
+		CALL(sys_litmus_lock)
+		CALL(sys_litmus_unlock)
+		CALL(sys_query_job_no)
+		CALL(sys_wait_for_job_release)
+/* 400 */   CALL(sys_wait_for_ts_release)
+		CALL(sys_release_ts)
+		CALL(sys_null_call)
+
 #ifndef syscalls_counted
 .equ syscalls_padding, ((NR_syscalls + 3) & ~3) - NR_syscalls
 #define syscalls_counted
