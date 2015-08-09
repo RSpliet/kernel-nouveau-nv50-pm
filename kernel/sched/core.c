@@ -2661,6 +2661,9 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
 	rq = finish_task_switch(prev);
 	balance_callback(rq);
 	preempt_enable();
+	
+	if (sched_state_validate_switch())
+		litmus_reschedule_local();
 
 	if (current->set_child_tid)
 		put_user(task_pid_vnr(current), current->set_child_tid);
@@ -3114,6 +3117,7 @@ static void __sched notrace __schedule(bool preempt)
 	struct rq *rq;
 	int cpu;
 
+	sched_state_entered_schedule();
 	cpu = smp_processor_id();
 	rq = cpu_rq(cpu);
 	rcu_note_context_switch();
@@ -3200,6 +3204,9 @@ static void __sched notrace __schedule(bool preempt)
 	
 	TS_SCHED2_START(prev);
 	balance_callback(rq);
+	
+	if (unlikely(sched_state_validate_switch()))
+		litmus_reschedule_local();
 	TS_SCHED2_END(prev);
 }
 
