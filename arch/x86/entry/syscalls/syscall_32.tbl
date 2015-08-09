@@ -383,3 +383,16 @@
 374	i386	userfaultfd		sys_userfaultfd
 375	i386	membarrier		sys_membarrier
 376	i386	mlock2			sys_mlock2
+377	i386	set_rt_task_param	sys_set_rt_task_param
+378	i386	get_rt_task_param	sys_get_rt_task_param
+379	i386	complete_job		sys_complete_job
+380	i386	od_open			sys_od_open
+381	i386	od_close		sys_od_close
+382	i386	litmus_lock		sys_litmus_lock
+383	i386	litmus_unlock		sys_litmus_unlock
+384	i386	query_job_no		sys_query_job_no
+385	i386	wait_for_job_release	sys_wait_for_job_release
+386	i386	wait_for_ts_release	sys_wait_for_ts_release
+387	i386	release_ts		sys_release_ts
+388	i386	null_call		sys_null_call
+
