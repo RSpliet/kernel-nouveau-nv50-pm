@@ -88,6 +88,7 @@
 #include "../smpboot.h"
 
 #include <litmus/trace.h>
+#include <litmus/sched_trace.h>
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/sched.h>
@@ -2659,6 +2660,9 @@ asmlinkage __visible void schedule_tail(struct task_struct *prev)
 	 */
 
 	rq = finish_task_switch(prev);
+	
+	sched_trace_task_switch_to(current);
+	
 	balance_callback(rq);
 	preempt_enable();
 	
@@ -3135,6 +3139,7 @@ static void __sched notrace __schedule(bool preempt)
 		preempt_enable_no_resched_notrace();
 
 	TS_SCHED_START;
+	sched_trace_task_switch_away(prev);
 
 	schedule_debug(prev);
 
@@ -3203,6 +3208,7 @@ static void __sched notrace __schedule(bool preempt)
 	}
 	
 	TS_SCHED2_START(prev);
+	sched_trace_task_switch_to(current);
 	balance_callback(rq);
 	
 	if (unlikely(sched_state_validate_switch()))
