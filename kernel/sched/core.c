@@ -87,6 +87,8 @@
 #include "../workqueue_internal.h"
 #include "../smpboot.h"
 
+#include <litmus/litmus.h>
+#include <litmus/ceiling.h>
 #include <litmus/trace.h>
 #include <litmus/sched_trace.h>
 
@@ -3238,6 +3240,8 @@ asmlinkage __visible void __sched schedule(void)
 		__schedule(false);
 		sched_preempt_enable_no_resched();
 	} while (need_resched());
+
+	srp_ceiling_block();
 }
 EXPORT_SYMBOL(schedule);
 
@@ -3269,6 +3273,7 @@ void __sched schedule_preempt_disabled(void)
 {
 	sched_preempt_enable_no_resched();
 	schedule();
+	srp_ceiling_block();
 	preempt_disable();
 }
 
@@ -3284,6 +3289,7 @@ static void __sched notrace preempt_schedule_common(void)
 		 * between schedule and now.
 		 */
 	} while (need_resched());
+	srp_ceiling_block();
 }
 
 #ifdef CONFIG_PREEMPT
@@ -3340,6 +3346,7 @@ asmlinkage __visible void __sched notrace preempt_schedule_notrace(void)
 
 		preempt_enable_no_resched_notrace();
 	} while (need_resched());
+	srp_ceiling_block();
 }
 EXPORT_SYMBOL_GPL(preempt_schedule_notrace);
 
@@ -3364,6 +3371,7 @@ asmlinkage __visible void __sched preempt_schedule_irq(void)
 		preempt_disable();
 		local_irq_enable();
 		__schedule(true);
+		srp_ceiling_block();
 		local_irq_disable();
 		sched_preempt_enable_no_resched();
 	} while (need_resched());
