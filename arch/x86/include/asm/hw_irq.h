@@ -45,6 +45,8 @@ extern asmlinkage void deferred_error_interrupt(void);
 extern asmlinkage void call_function_interrupt(void);
 extern asmlinkage void call_function_single_interrupt(void);
 
+extern asmlinkage void pull_timers_interrupt(void);
+
 #ifdef CONFIG_TRACING
 /* Interrupt handlers registered during init_IRQ */
 extern void trace_apic_timer_interrupt(void);
@@ -58,6 +60,7 @@ extern void trace_threshold_interrupt(void);
 extern void trace_deferred_error_interrupt(void);
 extern void trace_call_function_interrupt(void);
 extern void trace_call_function_single_interrupt(void);
+extern void trace_pull_timers_interrupt(void);
 #define trace_irq_move_cleanup_interrupt  irq_move_cleanup_interrupt
 #define trace_reboot_interrupt  reboot_interrupt
 #define trace_kvm_posted_intr_ipi kvm_posted_intr_ipi
@@ -175,6 +178,7 @@ extern asmlinkage void smp_irq_move_cleanup_interrupt(void);
 extern __visible void smp_reschedule_interrupt(struct pt_regs *);
 extern __visible void smp_call_function_interrupt(struct pt_regs *);
 extern __visible void smp_call_function_single_interrupt(struct pt_regs *);
+extern __visible void smp_pull_timers_interrupt(struct pt_regs *);
 #endif
 
 extern char irq_entries_start[];
