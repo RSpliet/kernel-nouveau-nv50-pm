@@ -87,6 +87,8 @@
 #include "../workqueue_internal.h"
 #include "../smpboot.h"
 
+#include <litmus/trace.h>
+
 #define CREATE_TRACE_POINTS
 #include <trace/events/sched.h>
 
@@ -3128,6 +3130,8 @@ static void __sched notrace __schedule(bool preempt)
 	if (unlikely(prev->state == TASK_DEAD))
 		preempt_enable_no_resched_notrace();
 
+	TS_SCHED_START;
+
 	schedule_debug(prev);
 
 	if (sched_feat(HRTICK))
@@ -3182,14 +3186,21 @@ static void __sched notrace __schedule(bool preempt)
 		++*switch_count;
 
 		trace_sched_switch(preempt, prev, next);
+		TS_SCHED_END(next);
+		TS_CXS_START(next);
 		rq = context_switch(rq, prev, next); /* unlocks the rq */
+		TS_CXS_END(current);
+		
 		cpu = cpu_of(rq);
 	} else {
 		lockdep_unpin_lock(&rq->lock);
+		TS_SCHED_END(prev);
 		raw_spin_unlock_irq(&rq->lock);
 	}
-
+	
+	TS_SCHED2_START(prev);
 	balance_callback(rq);
+	TS_SCHED2_END(prev);
 }
 
 static inline void sched_submit_work(struct task_struct *tsk)
