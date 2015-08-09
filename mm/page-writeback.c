@@ -41,6 +41,8 @@
 
 #include "internal.h"
 
+#include <litmus/litmus.h> /* for is_realtime() */
+
 /*
  * Sleep at most 200ms at a time in balance_dirty_pages().
  */
@@ -396,7 +398,7 @@ static void domain_dirty_limits(struct dirty_throttle_control *dtc)
 	if (bg_thresh >= thresh)
 		bg_thresh = thresh / 2;
 	tsk = current;
-	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk)) {
+	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk) || is_realtime(tsk)) {
 		bg_thresh += bg_thresh / 4;
 		thresh += thresh / 4;
 	}
@@ -446,7 +448,7 @@ static unsigned long zone_dirty_limit(struct zone *zone)
 	else
 		dirty = vm_dirty_ratio * zone_memory / 100;
 
-	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk))
+	if (tsk->flags & PF_LESS_THROTTLE || rt_task(tsk) || is_realtime(tsk))
 		dirty += dirty / 4;
 
 	return dirty;
