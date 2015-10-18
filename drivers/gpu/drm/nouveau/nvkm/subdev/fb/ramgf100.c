@@ -50,11 +50,7 @@ struct gf100_ramfuc {
 
 	struct ramfuc_reg r_0x10f290[5];
 
-	struct ramfuc_reg r_0x10f300;
-	struct ramfuc_reg r_0x10f338;
-	struct ramfuc_reg r_0x10f340;
-	struct ramfuc_reg r_0x10f344;
-	struct ramfuc_reg r_0x10f348;
+	struct ramfuc_reg r_mr[9];
 
 	struct ramfuc_reg r_0x10f910;
 	struct ramfuc_reg r_0x10f914;
@@ -227,6 +223,19 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 	if (ret)
 		return ret;
 
+	/* Determine ram-specific MR values */
+	for (i < 0; i < 9; i++)
+		ram->base.mr[i] = ram_rd32(fuc, mr[i]);
+
+	switch (ram->base.type) {
+	case NVKM_RAM_TYPE_GDDR5:
+		ret = nvkm_gddr5_calc(&ram->base, false);
+		break;
+	default:
+		ret = -ENOSYS;
+		break;
+	}
+
 	/* determine current mclk configuration */
 	from = !!(ram_rd32(fuc, 0x1373f0) & 0x00000002); /*XXX: ok? */
 
@@ -355,9 +364,6 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 		ram_nsec(fuc, 2000);
 		ram_wr32(fuc, 0x10f314, 0x00000001);
 		ram_wr32(fuc, 0x10f210, 0x80000000);
-		ram_wr32(fuc, 0x10f338, 0x00300220);
-		ram_wr32(fuc, 0x10f300, 0x0000011d);
-		ram_nsec(fuc, 1000);
 	} else {
 		ram_wr32(fuc, 0x10f800, 0x00001800);
 		ram_wr32(fuc, 0x13d8f4, 0x00000000);
@@ -383,10 +389,11 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 		ram_nsec(fuc, 2000);
 		ram_wr32(fuc, 0x10f314, 0x00000001);
 		ram_wr32(fuc, 0x10f210, 0x80000000);
-		ram_wr32(fuc, 0x10f338, 0x00300200);
-		ram_wr32(fuc, 0x10f300, 0x0000084d);
-		ram_nsec(fuc, 1000);
 	}
+
+	ram_wr32(fuc, mr[3], ram->base.mr[3]);
+	ram_wr32(fuc, mr[0], ram->base.mr[0]);
+	ram_nsec(fuc, 1000);
 
 	for (i = 0; i < 5; i++)
 		ram_wr32(fuc, 0x10f290[i], timing[i]);
@@ -394,14 +401,14 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 	if (mode == 0) {
 		ram_wr32(fuc, 0x10f614, 0x40044f77);
 		ram_wr32(fuc, 0x10f610, 0x40044f77);
-		ram_wr32(fuc, 0x10f344, 0x00600009);
+		ram_wr32(fuc, mr[6], 0x00600009);
 		ram_nsec(fuc, 1000);
-		ram_wr32(fuc, 0x10f348, 0x00700008);
+		ram_wr32(fuc, mr[7], 0x00700008);
 		ram_wr32(fuc, 0x61c140, 0x19240000);
 		ram_wr32(fuc, 0x10f830, 0x00300017);
 		gf100_ram_train(fuc, 0x80021001);
 		gf100_ram_train(fuc, 0x80081001);
-		ram_wr32(fuc, 0x10f340, 0x00500004);
+		ram_wr32(fuc, mr[5], 0x00500004);
 		ram_nsec(fuc, 1000);
 		ram_wr32(fuc, 0x10f830, 0x01300017);
 		ram_wr32(fuc, 0x10f830, 0x00300017);
@@ -413,11 +420,11 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 		ram_wr32(fuc, 0x10f200, 0x00ce0000);
 		ram_wr32(fuc, 0x10f614, 0x60044e77);
 		ram_wr32(fuc, 0x10f610, 0x60044e77);
-		ram_wr32(fuc, 0x10f340, 0x00500000);
+		ram_wr32(fuc, mr[5], 0x00500000);
 		ram_nsec(fuc, 1000);
-		ram_wr32(fuc, 0x10f344, 0x00600228);
+		ram_wr32(fuc, mr[6], 0x00600228);
 		ram_nsec(fuc, 1000);
-		ram_wr32(fuc, 0x10f348, 0x00700000);
+		ram_wr32(fuc, mr[7], 0x00700000);
 		ram_wr32(fuc, 0x13d8f4, 0x00000000);
 		ram_wr32(fuc, 0x61c140, 0x09a40000);
 
@@ -709,11 +716,9 @@ gf100_ram_new(struct nvkm_fb *fb, struct nvkm_ram **pram)
 	for (i = 0; i < 5; i++)
 		ram->fuc.r_0x10f290[i] = ramfuc_reg(0x10f290 + (i * 4));
 
-	ram->fuc.r_0x10f300 = ramfuc_reg(0x10f300);
-	ram->fuc.r_0x10f338 = ramfuc_reg(0x10f338);
-	ram->fuc.r_0x10f340 = ramfuc_reg(0x10f340);
-	ram->fuc.r_0x10f344 = ramfuc_reg(0x10f344);
-	ram->fuc.r_0x10f348 = ramfuc_reg(0x10f348);
+	ram->fuc.r_mr[0] = ramfuc_reg(0x10f300);
+	for (i = 1; i < 9; i++)
+		ram->fuc.r_mr[i] = ramfuc_reg(0x10f330 + ((i - 1) * 4));
 
 	ram->fuc.r_0x10f910 = ramfuc_reg(0x10f910);
 	ram->fuc.r_0x10f914 = ramfuc_reg(0x10f914);
