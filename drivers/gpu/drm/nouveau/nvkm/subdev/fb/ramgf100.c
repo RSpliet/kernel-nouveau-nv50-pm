@@ -133,21 +133,23 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 	struct nvkm_device *device = subdev->device;
 	struct nvkm_clk *clk = device->clk;
 	struct nvkm_bios *bios = device->bios;
+	struct nvkm_ram_data *next;
 	struct nvbios_ramcfg cfg;
-	u8  ver, cnt, len, strap;
-	struct {
-		u32 data;
-		u8  size;
-	} rammap, ramcfg, timing;
+	u8  ver, hdr, cnt, len, strap;
+	u32 data;
 	int ref, div, out;
 	int from, mode;
 	int N1, M1, P;
 	int ret;
 
+	next = &ram->base.target;
+	next->freq = freq;
+	ram->base.next = next;
+
 	/* lookup memory config data relevant to the target frequency */
-	rammap.data = nvbios_rammapEm(bios, freq / 1000, &ver, &rammap.size,
-				      &cnt, &ramcfg.size, &cfg);
-	if (!rammap.data || ver != 0x10 || rammap.size < 0x0e) {
+	data = nvbios_rammapEm(bios, freq / 1000, &ver, &hdr,
+				      &cnt, &len, &next->bios);
+	if (!data || ver != 0x10 || len < 0x0e) {
 		nvkm_error(subdev, "invalid/missing rammap entry\n");
 		return -EINVAL;
 	}
@@ -159,23 +161,23 @@ gf100_ram_calc(struct nvkm_ram *base, u32 freq)
 		return -EINVAL;
 	}
 
-	ramcfg.data = rammap.data + rammap.size + (strap * ramcfg.size);
-	if (!ramcfg.data || ver != 0x10 || ramcfg.size < 0x0e) {
+	data = nvbios_rammapSp(bios, data, ver, hdr, cnt, len, strap,
+				       &ver, &hdr, &next->bios);
+	if (!data || ver != 0x10 || hdr < 0x0e) {
 		nvkm_error(subdev, "invalid/missing ramcfg entry\n");
 		return -EINVAL;
 	}
 
 	/* lookup memory timings, if bios says they're present */
-	strap = nvbios_rd08(bios, ramcfg.data + 0x01);
-	if (strap != 0xff) {
-		timing.data = nvbios_timingEe(bios, strap, &ver, &timing.size,
-					      &cnt, &len);
-		if (!timing.data || ver != 0x10 || timing.size < 0x19) {
+	strap = nvbios_rd08(bios, data + 0x01);
+	if (next->bios.ramcfg_timing != 0xff) {
+		data = nvbios_timingEp(bios, next->bios.ramcfg_timing,
+				       &ver, &hdr, &cnt, &len,
+				       &next->bios);
+		if (!data || ver != 0x10 || hdr < 0x17) {
 			nvkm_error(subdev, "invalid/missing timing entry\n");
 			return -EINVAL;
 		}
-	} else {
-		timing.data = 0;
 	}
 
 	ret = ram_init(fuc, ram->base.fb);
