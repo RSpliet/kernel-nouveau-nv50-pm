@@ -66,9 +66,12 @@ struct nvbios_ramcfg {
 			unsigned ramcfg_10_02_20:1;
 			unsigned ramcfg_10_03_0f:4;
 			unsigned ramcfg_10_04_01:1;
-			unsigned ramcfg_10_05:8;
-			unsigned ramcfg_10_06:8;
-			unsigned ramcfg_10_07:8;
+			unsigned ramcfg_10_05_0f:4;
+			unsigned ramcfg_10_05_f0:8;
+			unsigned ramcfg_10_06_0f:4;
+			unsigned ramcfg_10_06_f0:4;
+			unsigned ramcfg_10_07_0f:4;
+			unsigned ramcfg_10_07_f0:4;
 			unsigned ramcfg_10_08:8;
 			unsigned ramcfg_10_09_0f:4;
 			unsigned ramcfg_10_09_f0:4;

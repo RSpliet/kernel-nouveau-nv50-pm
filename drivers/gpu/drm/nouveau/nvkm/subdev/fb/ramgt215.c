@@ -705,11 +705,15 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 	ram_nsec(fuc, 20000);
 
 	if (next->bios.rammap_10_04_08) {
-		ram_wr32(fuc, 0x1005a0, next->bios.ramcfg_10_06 << 16 |
-					next->bios.ramcfg_10_05 << 8 |
-					next->bios.ramcfg_10_05);
+		ram_wr32(fuc, 0x1005a0, next->bios.ramcfg_10_06_f0 << 20 |
+					next->bios.ramcfg_10_06_0f << 16 |
+					next->bios.ramcfg_10_05_f0 << 12 |
+					next->bios.ramcfg_10_05_0f << 8 |
+					next->bios.ramcfg_10_05_f0 << 4 |
+					next->bios.ramcfg_10_05_0f);
 		ram_wr32(fuc, 0x1005a4, next->bios.ramcfg_10_08 << 8 |
-					next->bios.ramcfg_10_07);
+					next->bios.ramcfg_10_07_f0 << 4 |
+					next->bios.ramcfg_10_07_0f);
 		ram_wr32(fuc, 0x10f804, next->bios.ramcfg_10_09_f0 << 20 |
 					next->bios.ramcfg_10_03_0f << 16 |
 					next->bios.ramcfg_10_09_0f |
