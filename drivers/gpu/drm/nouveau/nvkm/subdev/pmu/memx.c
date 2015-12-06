@@ -1,6 +1,9 @@
 #ifndef __NVKM_PMU_MEMX_H__
 #define __NVKM_PMU_MEMX_H__
 #include "priv.h"
+#include <subdev/bios.h>
+#include <subdev/bios/init.h>
+#include <subdev/bios/ramcfg.h>
 
 struct nvkm_memx {
 	struct nvkm_pmu *pmu;
@@ -200,4 +203,67 @@ nvkm_memx_unblock(struct nvkm_memx *memx)
 	nvkm_debug(&memx->pmu->subdev, "   HOST UNBLOCKED\n");
 	memx_cmd(memx, MEMX_LEAVE, 0, NULL);
 }
+
+/******************************************************************************
+ * Turn VBIOS init script into memx command stream. Not-quite as feature rich
+ * as subdev/bios/init.c
+ *****************************************************************************/
+
+static void
+nvkm_memx_init_ram_restrict(struct nvkm_memx *memx, struct nvbios_init *init)
+{
+	struct nvkm_bios *bios = init->bios;
+	struct nvkm_subdev *subdev = &memx->pmu->subdev;
+        struct nvkm_device *device = subdev->device;
+	u32 addr = nvbios_rd32(bios, init->offset + 1);
+	u8  incr = nvbios_rd08(bios, init->offset + 5);
+	u8   num = nvbios_rd08(bios, init->offset + 6);
+	u8 count = nvbios_ramcfg_count(init->bios);
+	u8 index = init->ramcfg;
+	u8 i;
+	u32 oldval, newval;
+
+	init->offset += 7;
+
+	for (i = 0; i < num; i++) {
+		oldval  = nvkm_rd32(device, addr);
+		newval = nvbios_rd32(bios, init->offset + (4 * index));
+
+		if (oldval != newval) {
+			nvkm_memx_wr32(memx, addr, newval);
+		}
+		init->offset += 4 * count;
+		addr += incr;
+	}
+}
+
+void
+nvkm_memx_init_run(struct nvkm_memx *memx, struct nvkm_bios *bios, u16 offset,
+		u8 ramcfg)
+{
+	struct nvbios_init init = {
+		.subdev = &bios->subdev,
+		.bios = bios,
+		.offset = offset,
+		.outp = NULL,
+		.execute = 1,
+		.ramcfg = ramcfg,
+	};
+	u8 op;
+
+	while (init.offset)
+	{
+		op = nvbios_rd08(bios, init.offset);
+		switch (op)
+		{
+		case 0x8f:
+			nvkm_memx_init_ram_restrict(memx, &init);
+			break;
+		case 0x71:
+		default:
+			return;
+		}
+	}
+}
+
 #endif

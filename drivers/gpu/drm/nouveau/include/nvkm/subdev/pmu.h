@@ -48,4 +48,6 @@ void nvkm_memx_train(struct nvkm_memx *);
 int  nvkm_memx_train_result(struct nvkm_pmu *, u32 *, int);
 void nvkm_memx_block(struct nvkm_memx *);
 void nvkm_memx_unblock(struct nvkm_memx *);
+void nvkm_memx_init_run(struct nvkm_memx *memx, struct nvkm_bios *bios,
+		u16 offset, u8 ramcfg);
 #endif
