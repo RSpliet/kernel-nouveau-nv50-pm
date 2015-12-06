@@ -32,6 +32,7 @@
 #include <subdev/bios/M0209.h>
 #include <subdev/bios/rammap.h>
 #include <subdev/bios/timing.h>
+#include <subdev/bios/perf.h>
 #include <subdev/clk.h>
 #include <subdev/clk/pll.h>
 #include <subdev/ltc.h>
