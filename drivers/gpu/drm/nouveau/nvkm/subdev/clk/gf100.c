@@ -22,21 +22,12 @@
  * Authors: Ben Skeggs
  */
 #define gf100_clk(p) container_of((p), struct gf100_clk, base)
-#include "priv.h"
+#include "gf100.h"
 #include "pll.h"
 
 #include <subdev/bios.h>
 #include <subdev/bios/pll.h>
 #include <subdev/timer.h>
-
-struct gf100_clk_info {
-	u32 freq;
-	u32 ssel;
-	u32 mdiv;
-	u32 dsrc;
-	u32 ddiv;
-	u32 coef;
-};
 
 struct gf100_clk {
 	struct nvkm_clk base;
@@ -268,6 +259,80 @@ calc_pll(struct gf100_clk *clk, int idx, u32 freq, u32 *coef)
 
 	*coef = (P << 16) | (N << 8) | M;
 	return ret;
+}
+
+static int
+gf100_mclk_info(struct nvkm_clk *base, u32 khz,
+	       struct gf100_clk_info *info)
+{
+	struct gf100_clk *clk = gf100_clk(base);
+	struct nvkm_device *device = clk->base.subdev.device;
+	u32 oclk = khz;
+	u32 sclk, sdiv;
+	s32 diff;
+
+	info->mdiv = nvkm_rd32(device, 0x137310);
+
+	/* XXX: read_vco? */
+	sclk = read_vco(clk, 0x132000);
+	sdiv = min((sclk * 2) / khz, (u32)65);
+	oclk = (sclk * 2) / sdiv;
+	diff = ((khz + 3000) - oclk);
+
+	/* When imprecise, play it safe and aim for a clock lower than
+	 * desired rather than higher */
+	if (diff < 0) {
+		sdiv++;
+		oclk = (sclk * 2) / sdiv;
+	}
+
+	info->mdiv &= ~0x00003f00;
+	info->mdiv |=  0x80000000 | (sdiv - 2) << 8;
+
+	return oclk;
+}
+
+int
+gf100_mpll_info(struct nvkm_clk *base, u32 khz, struct gf100_clk_info *info)
+{
+	struct gf100_clk *clk = gf100_clk(base);
+	struct nvkm_subdev *subdev = &clk->base.subdev;
+	struct nvbios_pll limits, slimits;
+	int P, N, M;
+	int ret;
+
+	info->coef = 0;
+
+	/* NVIDIA seems to always use both PLLs when it's within the range of
+	 * the second, otherwise use "div mode" */
+	ret = nvbios_pll_parse(subdev->device->bios, 0x132000, &limits);
+	if (ret)
+		return ret;
+
+	if (khz < limits.vco1.min_freq) {
+		gf100_mclk_info(base, khz, info);
+	} else {
+		ret = nvbios_pll_parse(subdev->device->bios, 0x132020,
+				&slimits);
+		if (ret)
+			return ret;
+
+		/* Two PLLs, source brings it to 300MHz */
+		ret = gt215_pll_calc(subdev, &slimits, 300000, &N, NULL, &M, &P);
+		if (ret < 0)
+			return ret;
+
+		info->mscoef = (P << 16) | (N << 8) | M;
+
+		limits.refclk = 300000;
+		ret = gt215_pll_calc(subdev, &limits, khz, &N, NULL, &M, &P);
+		if (ret < 0)
+			return ret;
+
+		info->coef = (P << 16) | (N << 8) | M;
+	}
+
+	return 0;
 }
 
 static int
