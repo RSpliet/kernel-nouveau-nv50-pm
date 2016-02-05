@@ -199,7 +199,6 @@ init:
 	ld b32 $r14 D[$r0 + #gpc_mmio_list_head]
 	ld b32 $r15 D[$r0 + #gpc_mmio_list_tail]
 	call(mmctx_size)
-	add b32 $r2 $r15
 	add b32 $r3 $r15
 
 	// calculate per-TPC mmio context size
@@ -208,7 +207,6 @@ init:
 	call(mmctx_size)
 	ld b32 $r14 D[$r0 + #tpc_count]
 	mulu $r14 $r15
-	add b32 $r2 $r14
 	add b32 $r3 $r14
 
 #if NV_PGRAPH_GPCX_UNK__SIZE > 0
@@ -218,25 +216,23 @@ init:
 	call(mmctx_size)
 	ld b32 $r14 D[$r0 + #unk_count]
 	mulu $r14 $r15
-	add b32 $r2 $r14
 	add b32 $r3 $r14
 #endif
 
 	// round up base/size to 256 byte boundary (for strand SWBASE)
 	shr b32 $r3 2
 	nv_iowr(NV_PGRAPH_GPCX_GPCCS_MMCTX_LOAD_COUNT, 0, $r3) // wtf for?!
-	shr b32 $r2 8
 	shr b32 $r3 6
-	add b32 $r2 1
 	add b32 $r3 1
-	shl b32 $r2 8
 	shl b32 $r3 8
 
 	// calculate size of strand context data
-	mov b32 $r15 $r2
+	add b32 $r15 $r2 $r3
 	call(strand_ctx_init)
-	add b32 $r2 $r15
 	add b32 $r3 $r15
+
+	// Update the base address
+	add b32 $r2 $r3
 
 #if CHIPSET >= GM107
 	// calculate size of tpc strand context data
