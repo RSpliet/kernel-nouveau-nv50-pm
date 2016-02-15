@@ -51,18 +51,35 @@ static int
 nvkm_volt_set(struct nvkm_volt *volt, u32 uv)
 {
 	struct nvkm_subdev *subdev = &volt->subdev;
-	int i, ret = -EINVAL;
+	int i, ret = -EINVAL, err, best = -1;
 
 	if (volt->func->volt_set)
 		return volt->func->volt_set(volt, uv);
 
 	for (i = 0; i < volt->vid_nr; i++) {
-		if (volt->vid[i].uv == uv) {
-			ret = volt->func->vid_set(volt, volt->vid[i].vid);
+		if (i == 0) {
+			best = 0;
+			err = volt->vid[i].uv - uv;
+		} else {
+			int new_err = volt->vid[i].uv - uv;
+			if (abs(new_err) < abs(err) || (err < 0 && new_err >= 0)) {
+				best = i;
+				err = new_err;
+			}
+		}
+
+		if (err == 0) {
+			ret = volt->func->vid_set(volt, volt->vid[best].vid);
 			nvkm_debug(subdev, "set %duv: %d\n", uv, ret);
 			break;
 		}
 	}
+
+	if (best != -1) {
+		ret = volt->func->vid_set(volt, volt->vid[best].vid);
+		nvkm_debug(subdev, "set req %duv to %duv: %d\n", uv, volt->vid[best].uv, ret);
+	}
+
 	return ret;
 }
 
