@@ -9,6 +9,8 @@
 
 #include <litmus/budget.h>
 
+#include <linux/module.h>
+
 struct enforcement_timer {
 	/* The enforcement timer is used to accurately police
 	 * slice budgets. */
@@ -76,11 +78,10 @@ static void arm_enforcement_timer(struct enforcement_timer* et,
 
 	if (likely(!is_np(t))) {
 		when_to_fire = litmus_clock() + budget_remaining(t);
-		__hrtimer_start_range_ns(&et->timer,
+		hrtimer_start_range_ns(&et->timer,
 					 ns_to_ktime(when_to_fire),
 					 0 /* delta */,
-					 HRTIMER_MODE_ABS_PINNED,
-					 0 /* no wakeup */);
+					 HRTIMER_MODE_ABS_PINNED);
 		et->armed = 1;
 	}
 }

@@ -110,8 +110,7 @@ static inline lt_t litmus_clock(void)
  * when scheduling is in progress.
  */
 #define is_current_running() 			\
-	((current)->state == TASK_RUNNING || 	\
-	 preempt_count() & PREEMPT_ACTIVE)
+	((current)->state == TASK_RUNNING)
 
 #define is_released(t, now)	\
 	(lt_before_eq(get_release(t), now))

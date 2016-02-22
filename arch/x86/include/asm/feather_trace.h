@@ -5,7 +5,7 @@
 
 static inline unsigned long long ft_timestamp(void)
 {
-	return __native_read_tsc();
+	return rdtsc();
 }
 
 #ifdef CONFIG_X86_32

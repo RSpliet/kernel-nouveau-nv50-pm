@@ -728,9 +728,9 @@ out:
 	if (unlikely(!hrtimer_active(&state->quantum_timer))) {
 		TRACE("activating quantum timer start=%llu\n",
 			hrtimer_get_expires(&state->quantum_timer));
-		__hrtimer_start_range_ns(&state->quantum_timer,
+		hrtimer_start_range_ns(&state->quantum_timer,
 			hrtimer_get_expires(&state->quantum_timer),
-			0, HRTIMER_MODE_ABS, 0);
+			0, HRTIMER_MODE_ABS);
 	}
 
 	return next;

@@ -248,9 +248,9 @@ static void arm_release_timer(rt_domain_t *_rt)
 			if (rt->release_master == NO_CPU &&
 			    target_cpu == NO_CPU)
 #endif
-				__hrtimer_start_range_ns(&rh->timer,
+				hrtimer_start_range_ns(&rh->timer,
 						ns_to_ktime(rh->release_time),
-						0, HRTIMER_MODE_ABS_PINNED, 0);
+						0, HRTIMER_MODE_ABS_PINNED);
 #ifdef CONFIG_RELEASE_MASTER
 			else
 				hrtimer_start_on(

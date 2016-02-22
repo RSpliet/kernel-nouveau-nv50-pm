@@ -11,6 +11,7 @@
 #include <litmus/fdso.h>
 #include <litmus/trace.h>
 
+#include <linux/module.h>
 
 #ifdef CONFIG_LITMUS_LOCKING
 
