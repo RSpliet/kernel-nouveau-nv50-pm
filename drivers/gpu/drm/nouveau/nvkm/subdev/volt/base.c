@@ -26,6 +26,7 @@
 #include <subdev/bios.h>
 #include <subdev/bios/vmap.h>
 #include <subdev/bios/volt.h>
+#include <subdev/therm.h>
 
 int
 nvkm_volt_get(struct nvkm_volt *volt)
@@ -66,7 +67,7 @@ nvkm_volt_set(struct nvkm_volt *volt, u32 uv)
 }
 
 int
-nvkm_volt_map(struct nvkm_volt *volt, u8 id)
+nvkm_volt_map(struct nvkm_volt *volt, u8 id, u8 temp)
 {
 	struct nvkm_bios *bios = volt->subdev.device->bios;
 	struct nvbios_vmap_entry info;
@@ -76,7 +77,7 @@ nvkm_volt_map(struct nvkm_volt *volt, u8 id)
 	vmap = nvbios_vmap_entry_parse(bios, id, &ver, &len, &info);
 	if (vmap) {
 		if (info.link != 0xff) {
-			int ret = nvkm_volt_map(volt, info.link);
+			int ret = nvkm_volt_map(volt, info.link, temp);
 			if (ret < 0)
 				return ret;
 			info.min += ret;
@@ -90,12 +91,17 @@ nvkm_volt_map(struct nvkm_volt *volt, u8 id)
 int
 nvkm_volt_set_id(struct nvkm_volt *volt, u8 id, int condition)
 {
+	struct nvkm_therm *therm = volt->subdev.device->therm;
 	int ret;
+	int temp = 0;
+
+	if (therm)
+		temp = nvkm_therm_temp_get(therm);
 
 	if (volt->func->set_id)
 		return volt->func->set_id(volt, id, condition);
 
-	ret = nvkm_volt_map(volt, id);
+	ret = nvkm_volt_map(volt, id, max(temp, 0));
 	if (ret >= 0) {
 		int prev = nvkm_volt_get(volt);
 		if (!condition || prev < 0 ||
