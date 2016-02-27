@@ -65,7 +65,7 @@ nvkm_volt_set(struct nvkm_volt *volt, u32 uv)
 	return ret;
 }
 
-static int
+int
 nvkm_volt_map(struct nvkm_volt *volt, u8 id)
 {
 	struct nvkm_bios *bios = volt->subdev.device->bios;
