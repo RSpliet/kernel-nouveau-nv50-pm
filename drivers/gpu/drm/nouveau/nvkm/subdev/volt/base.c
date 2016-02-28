@@ -106,7 +106,7 @@ nvkm_volt_map(struct nvkm_volt *volt, u8 id, u8 temp)
 }
 
 int
-nvkm_volt_set_id(struct nvkm_volt *volt, u8 id, int condition)
+nvkm_volt_set_id(struct nvkm_volt *volt, u8 id, u8 min_id, int condition)
 {
 	struct nvkm_therm *therm = volt->subdev.device->therm;
 	int ret;
@@ -124,6 +124,9 @@ nvkm_volt_set_id(struct nvkm_volt *volt, u8 id, int condition)
 		if (!condition || prev < 0 ||
 		    (condition < 0 && ret < prev) ||
 		    (condition > 0 && ret > prev)) {
+			int min = nvkm_volt_map(volt, min_id, max(temp, 0));
+			if (min >= 0)
+				ret = max(min, ret);
 			ret = nvkm_volt_set(volt, ret);
 		} else {
 			ret = 0;
