@@ -217,6 +217,16 @@ nvkm_cstate_new(struct nvkm_clk *clk, int idx, struct nvkm_pstate *pstate)
 		if (domain->flags & NVKM_CLK_DOM_FLAG_CORE) {
 			u32 freq = nvkm_clk_adjust(clk, true, pstate->pstate,
 						   domain->bios, cstepX.freq);
+			if (domain->flags & NVKM_CLK_DOM_FLAG_BASECLK) {
+				switch (clk->boost_mode) {
+				case NVKM_CLK_BOOST_NONE:
+					if (clk->base_khz && freq > clk->base_khz)
+						goto err;
+				case NVKM_CLK_BOOST_AVG:
+					if (clk->boost_khz && freq > clk->boost_khz)
+						goto err;
+				}
+			}
 			cstate->domain[domain->name] = freq;
 		}
 		domain++;
@@ -224,6 +234,9 @@ nvkm_cstate_new(struct nvkm_clk *clk, int idx, struct nvkm_pstate *pstate)
 
 	list_add(&cstate->head, &pstate->list);
 	return 0;
+err:
+	kfree(cstate);
+	return -EINVAL;
 }
 
 /******************************************************************************
@@ -627,14 +640,20 @@ nvkm_clk_ctor(const struct nvkm_clk_func *func, struct nvkm_device *device,
 
 	nvkm_subdev_ctor(&nvkm_clk, device, index, 0, subdev);
 
+	clk->boost_mode = nvkm_longopt(device->cfgopt, "NvBoost", NVKM_CLK_BOOST_AVG);
 	if (bios && !nvbios_baseclock_parse(bios, &h)) {
 		struct nvbios_baseclk_entry base, boost;
-		if (!nvbios_baseclock_entry(bios, &h, h.boost, &boost))
+		if (!nvbios_baseclock_entry(bios, &h, h.boost, &boost)) {
+			clk->boost_khz = boost.clock_mhz * 1000;
 			nvkm_info(subdev, "boost: %i MHz\n",
 				  boost.clock_mhz / 2);
-		if (!nvbios_baseclock_entry(bios, &h, h.base, &base))
+		}
+
+		if (!nvbios_baseclock_entry(bios, &h, h.base, &base)) {
+			clk->base_khz = base.clock_mhz * 1000;
 			nvkm_info(subdev, "base: %i MHz\n",
 				  base.clock_mhz / 2);
+		}
 	}
 
 	clk->func = func;
