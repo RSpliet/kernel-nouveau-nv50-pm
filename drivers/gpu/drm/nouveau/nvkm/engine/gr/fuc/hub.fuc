@@ -320,6 +320,11 @@ ih:
 	push $r15
 	clear b32 $r0
 
+	// mark current measurement as dirty
+	ld b32 $r10 D[$r0 + #time_start]
+	sub b32 $r10 1
+	st b32 D[$r0 + #time_start] $r10
+
 	// incoming fifo command?
 	nv_iord($r10, NV_PGRAPH_FECS_INTR, 0)
 	and $r11 $r10 NV_PGRAPH_FECS_INTR_FIFO
