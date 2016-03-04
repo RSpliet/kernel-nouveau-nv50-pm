@@ -263,3 +263,21 @@
 */	bset $r9 bit /*
 */	nv_iowr(NV_PGRAPH_FECS_CC_SCRATCH_CLR(7), 0, $r9) /*
 */	pop $r9
+
+#define trace_start /*
+*/  push $r14 /*
+*/  push $r15 /*
+*/  nv_rd32($r15, 0x10a02c) /*
+*/  st b32 D[$r0 + #time_start] $r15 /*
+*/  pop $r15 /*
+*/  pop $r14
+
+#define trace_end /*
+*/  push $r14 /*
+*/  push $r15 /*
+*/  nv_rd32($r15, 0x10a02c) /*
+*/  ld b32 $r14 D[$r0 + #time_start] /*
+*/  sub b32 $r15 $r14 /*
+*/  nv_iowr(NV_PGRAPH_FECS_CC_SCRATCH_VAL(6), 0, $r15) /*
+*/  pop $r15 /*
+*/  pop $r14

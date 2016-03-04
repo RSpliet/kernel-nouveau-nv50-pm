@@ -151,7 +151,7 @@ wait_donez:
 	push $r9
 
 	trace_set(T_WAIT);
-	nv_iowr(NV_PGRAPH_FECS_CC_SCRATCH_VAL(6), 0, $r10)
+	// nv_iowr(NV_PGRAPH_FECS_CC_SCRATCH_VAL(6), 0, $r10)
 	wait_donez_ne:
 		nv_iord($r9, NV_PGRAPH_FECS_SIGNAL, 0)
 		xbit $r9 $r9 $r10
@@ -169,7 +169,7 @@ wait_doneo:
 	push $r9
 
 	trace_set(T_WAIT);
-	nv_iowr(NV_PGRAPH_FECS_CC_SCRATCH_VAL(6), 0, $r10)
+	// nv_iowr(NV_PGRAPH_FECS_CC_SCRATCH_VAL(6), 0, $r10)
 	wait_doneo_e:
 		nv_iord($r9, NV_PGRAPH_FECS_SIGNAL, 0)
 		xbit $r9 $r9 $r10

@@ -41,7 +41,7 @@ uint32_t gk104_grgpc_data[] = {
 };
 
 uint32_t gk104_grgpc_code[] = {
-	0x04140ef5,
+	0x03fc0ef5,
 /* 0x0004: queue_put */
 	0x80f990f9,
 	0x9800d898,
@@ -49,7 +49,7 @@ uint32_t gk104_grgpc_code[] = {
 	0x0489b808,
 	0xf00c1bf4,
 	0x21f502f7,
-	0x00f803f1,
+	0x00f803d9,
 /* 0x0020: queue_put_next */
 	0xb60798c4,
 	0x8dbb0384,
@@ -87,7 +87,7 @@ uint32_t gk104_grgpc_code[] = {
 	0x99c80099,
 	0xf31bf41f,
 	0xa7f0a0f9,
-	0x3821f506,
+	0x2c21f506,
 	0xf1a0fc01,
 	0xf0cb00f7,
 	0xffcf01f3,
@@ -114,11 +114,8 @@ uint32_t gk104_grgpc_code[] = {
 	0x0007f100,
 	0x0203f00f,
 	0xbd0009d0,
+/* 0x0103: wait_donez_ne */
 	0xf190fc04,
-	0xf0060007,
-	0x0ad00203,
-/* 0x010f: wait_donez_ne */
-	0xf104bd00,
 	0xf0000097,
 	0x99cf0193,
 	0x989aff00,
@@ -129,17 +126,14 @@ uint32_t gk104_grgpc_code[] = {
 	0x0009d002,
 	0x90fc04bd,
 	0x00f890fc,
-/* 0x0138: wait_doneo */
+/* 0x012c: wait_doneo */
 	0x90f990f9,
 	0x99f094bd,
 	0x0007f100,
 	0x0203f00f,
 	0xbd0009d0,
+/* 0x0143: wait_doneo_e */
 	0xf190fc04,
-	0xf0060007,
-	0x0ad00203,
-/* 0x015b: wait_doneo_e */
-	0xf104bd00,
 	0xf0000097,
 	0x99cf0193,
 	0x989aff00,
@@ -150,9 +144,9 @@ uint32_t gk104_grgpc_code[] = {
 	0x0009d002,
 	0x90fc04bd,
 	0x00f890fc,
-/* 0x0184: mmctx_size */
+/* 0x016c: mmctx_size */
 	0x80f990f9,
-/* 0x018a: nv_mmctx_size_loop */
+/* 0x0172: nv_mmctx_size_loop */
 	0xe89894bd,
 	0x1a85b600,
 	0xb60180b6,
@@ -161,7 +155,7 @@ uint32_t gk104_grgpc_code[] = {
 	0xf404efb8,
 	0x9fb9eb1b,
 	0xfc80fc02,
-/* 0x01ab: mmctx_xfer */
+/* 0x0193: mmctx_xfer */
 	0xf900f890,
 	0xbd90f990,
 	0x0199f094,
@@ -174,7 +168,7 @@ uint32_t gk104_grgpc_code[] = {
 	0x03f0c400,
 	0x000bd001,
 	0x99f004bd,
-/* 0x01d9: mmctx_base_disabled */
+/* 0x01c1: mmctx_base_disabled */
 	0x05eefd00,
 	0xf11e0bf4,
 	0xf0c60007,
@@ -183,7 +177,7 @@ uint32_t gk104_grgpc_code[] = {
 	0xf0c70007,
 	0x0fd00103,
 	0xf004bd00,
-/* 0x01fa: mmctx_multi_disabled */
+/* 0x01e2: mmctx_multi_disabled */
 	0xabc80199,
 	0x10b4b600,
 	0xc80cb9f0,
@@ -193,8 +187,8 @@ uint32_t gk104_grgpc_code[] = {
 	0x07f105be,
 	0x03f0c500,
 	0x000bd001,
-/* 0x021e: mmctx_exec_loop */
-/* 0x021e: mmctx_wait_free */
+/* 0x0206: mmctx_exec_loop */
+/* 0x0206: mmctx_wait_free */
 	0xe7f104bd,
 	0xe3f0c500,
 	0x00eecf01,
@@ -207,7 +201,7 @@ uint32_t gk104_grgpc_code[] = {
 	0xf401c0b6,
 	0xabc8db1b,
 	0x1f1bf402,
-/* 0x024c: mmctx_fini_wait */
+/* 0x0234: mmctx_fini_wait */
 	0xc500b7f1,
 	0xcf01b3f0,
 	0xb4f000bb,
@@ -215,44 +209,44 @@ uint32_t gk104_grgpc_code[] = {
 	0xf0f01bf4,
 	0x21f405a7,
 	0x2b0ef4ec,
-/* 0x0268: mmctx_stop */
+/* 0x0250: mmctx_stop */
 	0xb600abc8,
 	0xb9f010b4,
 	0x12b9f00c,
 	0xc50007f1,
 	0xd00103f0,
 	0x04bd000b,
-/* 0x0280: mmctx_stop_wait */
+/* 0x0268: mmctx_stop_wait */
 	0xc500b7f1,
 	0xcf01b3f0,
 	0xbbc800bb,
 	0xf31bf412,
-/* 0x0290: mmctx_done */
+/* 0x0278: mmctx_done */
 	0x90f990fc,
 	0x99f094bd,
 	0x0007f101,
 	0x0203f017,
 	0xbd0009d0,
 	0xf890fc04,
-/* 0x02a9: strand_wait */
+/* 0x0291: strand_wait */
 	0xf0a0f900,
 	0x21f402a7,
 	0xf8a0fcec,
-/* 0x02b5: strand_pre */
+/* 0x029d: strand_pre */
 	0xf090f900,
 	0x07f10c97,
 	0x03f04afc,
 	0x0009d002,
 	0x21f504bd,
-	0x90fc02a9,
-/* 0x02ce: strand_post */
+	0x90fc0291,
+/* 0x02b6: strand_post */
 	0x90f900f8,
 	0xf10d97f0,
 	0xf04afc07,
 	0x09d00203,
 	0xf504bd00,
-	0xfc02a921,
-/* 0x02e7: strand_set */
+	0xfc029121,
+/* 0x02cf: strand_set */
 	0xf900f890,
 	0x0f97f090,
 	0x4ffc07f1,
@@ -269,8 +263,8 @@ uint32_t gk104_grgpc_code[] = {
 	0x03f04afc,
 	0x0009d002,
 	0x21f504bd,
-	0x90fc02a9,
-/* 0x032a: strand_ctx_init */
+	0x90fc0291,
+/* 0x0312: strand_ctx_init */
 	0x90f900f8,
 	0x70f980f9,
 	0x90f960f9,
@@ -279,9 +273,9 @@ uint32_t gk104_grgpc_code[] = {
 	0x0203f00f,
 	0xbd0009d0,
 	0xf590fc04,
-	0xf902b521,
+	0xf9029d21,
 	0x03e7f0e0,
-	0x02e721f5,
+	0x02cf21f5,
 	0x94bde0fc,
 	0x47fc07f1,
 	0xd00203f0,
@@ -290,7 +284,7 @@ uint32_t gk104_grgpc_code[] = {
 	0xf04afc07,
 	0x09d00203,
 	0xf504bd00,
-	0x9202a921,
+	0x92029121,
 	0x07f10109,
 	0x03f046fc,
 	0x0009d002,
@@ -298,14 +292,14 @@ uint32_t gk104_grgpc_code[] = {
 	0xfc07f102,
 	0x0203f04a,
 	0xbd0009d0,
-	0xa921f504,
-	0xce21f502,
+	0x9121f504,
+	0xb621f502,
 	0x0087f102,
 	0x0283f042,
 	0x200097f1,
 	0xcf0293f0,
 	0xf6950099,
-/* 0x03b1: ctx_init_strand_loop */
+/* 0x0399: ctx_init_strand_loop */
 	0x0086d008,
 	0xcf4086d0,
 	0x75b68087,
@@ -322,7 +316,7 @@ uint32_t gk104_grgpc_code[] = {
 	0x0203f017,
 	0xbd0009d0,
 	0xf890fc04,
-/* 0x03f1: error */
+/* 0x03d9: error */
 	0xb9e0f900,
 	0xe7f102ff,
 	0xe3f09814,
@@ -332,7 +326,7 @@ uint32_t gk104_grgpc_code[] = {
 	0xe3f09c1c,
 	0xb521f440,
 	0x00f8e0fc,
-/* 0x0414: init */
+/* 0x03fc: init */
 	0x17f104bd,
 	0x13f04200,
 	0x0011cf00,
@@ -342,7 +336,7 @@ uint32_t gk104_grgpc_code[] = {
 	0x0007f102,
 	0x0003f012,
 	0xbd0002d0,
-	0xa617f104,
+	0x8e17f104,
 	0x0010fe05,
 	0x070007f1,
 	0xd00003f0,
@@ -369,17 +363,17 @@ uint32_t gk104_grgpc_code[] = {
 	0xe3f00c30,
 	0x01e5f050,
 	0x34bd24bd,
-/* 0x04a6: init_unk_loop */
+/* 0x048e: init_unk_loop */
 	0x21f444bd,
 	0x00f6b078,
 	0xf00f0bf4,
 	0xf2bb01f7,
 	0x054ffd04,
-/* 0x04bb: init_unk_next */
+/* 0x04a3: init_unk_next */
 	0xb60130b6,
 	0xe0b60120,
 	0x0126b004,
-/* 0x04c7: init_unk_done */
+/* 0x04af: init_unk_done */
 	0x80e21bf4,
 	0x04800703,
 	0x0027f108,
@@ -394,15 +388,15 @@ uint32_t gk104_grgpc_code[] = {
 	0x04bd0005,
 	0x98000e98,
 	0x21f5010f,
-	0x3fbb0184,
+	0x3fbb016c,
 	0x010e9800,
 	0xf5020f98,
-	0x98018421,
+	0x98016c21,
 	0xeffd050e,
 	0x003ebb00,
 	0x98020e98,
 	0x21f5030f,
-	0x0e980184,
+	0x0e98016c,
 	0x00effd07,
 	0xb6003ebb,
 	0x07f10235,
@@ -412,7 +406,7 @@ uint32_t gk104_grgpc_code[] = {
 	0x0130b606,
 	0xbc0834b6,
 	0x21f5f023,
-	0x3fbb032a,
+	0x3fbb0312,
 	0x0023bb00,
 	0x010007f1,
 	0xd00203f0,
@@ -421,7 +415,7 @@ uint32_t gk104_grgpc_code[] = {
 	0x0007f11f,
 	0x0203f008,
 	0xbd0002d0,
-/* 0x0569: main */
+/* 0x0551: main */
 	0x0031f404,
 	0xf00028f4,
 	0x21f424d7,
@@ -433,12 +427,12 @@ uint32_t gk104_grgpc_code[] = {
 	0x01e4b604,
 	0xfe051efd,
 	0x21f50018,
-	0x0ef40672,
-/* 0x0599: main_not_ctx_xfer */
+	0x0ef4065a,
+/* 0x0581: main_not_ctx_xfer */
 	0x10ef94d3,
 	0xf501f5f0,
-	0xf403f121,
-/* 0x05a6: ih */
+	0xf403d921,
+/* 0x058e: ih */
 	0x00f9c60e,
 	0x88fe80f9,
 	0xf980f901,
@@ -459,7 +453,7 @@ uint32_t gk104_grgpc_code[] = {
 	0x07f101e7,
 	0x03f01d00,
 	0x000ed000,
-/* 0x05f6: ih_no_fifo */
+/* 0x05de: ih_no_fifo */
 	0x07f104bd,
 	0x03f00100,
 	0x000ad000,
@@ -470,7 +464,7 @@ uint32_t gk104_grgpc_code[] = {
 	0xfc0088fe,
 	0xf400fc80,
 	0x01f80032,
-/* 0x061c: hub_barrier_done */
+/* 0x0604: hub_barrier_done */
 	0xe0f9f0f9,
 	0x9801f7f0,
 	0xfebb040e,
@@ -479,13 +473,13 @@ uint32_t gk104_grgpc_code[] = {
 	0xf440e3f0,
 	0xe0fcb521,
 	0x00f8f0fc,
-/* 0x063c: ctx_redswitch */
+/* 0x0624: ctx_redswitch */
 	0x80f990f9,
 	0xf12097f0,
 	0xf0850007,
 	0x09d00103,
 	0xf004bd00,
-/* 0x0652: ctx_redswitch_delay */
+/* 0x063a: ctx_redswitch_delay */
 	0x82b60887,
 	0xfd1bf401,
 	0x080095f1,
@@ -494,7 +488,7 @@ uint32_t gk104_grgpc_code[] = {
 	0xd00103f0,
 	0x04bd0009,
 	0x90fc80fc,
-/* 0x0672: ctx_xfer */
+/* 0x065a: ctx_xfer */
 	0xe0f900f8,
 	0xc0f9d0f9,
 	0xa0f9b0f9,
@@ -502,9 +496,9 @@ uint32_t gk104_grgpc_code[] = {
 	0xd00203f0,
 	0x04bd000f,
 	0xf50711f4,
-/* 0x068f: ctx_xfer_not_load */
-	0xf5063c21,
-	0xbd02b521,
+/* 0x0677: ctx_xfer_not_load */
+	0xf5062421,
+	0xbd029d21,
 	0xfc07f1a4,
 	0x0203f047,
 	0xbd000ad0,
@@ -521,7 +515,7 @@ uint32_t gk104_grgpc_code[] = {
 	0x000c9800,
 	0xf0010d98,
 	0x21f500e7,
-	0xacf001ab,
+	0xacf00193,
 	0x00b7f101,
 	0x50b3f040,
 	0xb6040c98,
@@ -530,7 +524,7 @@ uint32_t gk104_grgpc_code[] = {
 	0xf1020d98,
 	0x980800e7,
 	0x21f5060f,
-	0xacf001ab,
+	0xacf00193,
 	0x04a5f001,
 	0x3000b7f1,
 	0x9850b3f0,
@@ -539,17 +533,23 @@ uint32_t gk104_grgpc_code[] = {
 	0x98020c98,
 	0xe7f1030d,
 	0x0f980200,
-	0xab21f508,
-	0xa921f501,
+	0x9321f508,
+	0x9121f501,
 	0x0601f402,
-/* 0x072b: ctx_xfer_post */
+/* 0x0713: ctx_xfer_post */
 	0xf50712f4,
-/* 0x072f: ctx_xfer_done */
-	0xf502ce21,
-	0xfc061c21,
+/* 0x0717: ctx_xfer_done */
+	0xf502b621,
+	0xfc060421,
 	0xfcb0fca0,
 	0xfcd0fcc0,
 	0x0000f8e0,
+	0x00000000,
+	0x00000000,
+	0x00000000,
+	0x00000000,
+	0x00000000,
+	0x00000000,
 	0x00000000,
 	0x00000000,
 	0x00000000,

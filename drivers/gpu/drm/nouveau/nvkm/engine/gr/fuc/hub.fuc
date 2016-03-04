@@ -32,6 +32,7 @@ rop_count:		.b32 0
 cmd_queue:		queue_init
 
 ctx_current:		.b32 0
+time_start:			.b32 0
 
 .align 256
 chan_data:
@@ -230,6 +231,7 @@ main:
 	cmpu b32 $r14 0x4001
 	bra ne #main_not_ctx_switch
 		trace_set(T_AUTO)
+		trace_start
 		nv_iord($r1, NV_PGRAPH_FECS_CHAN_ADDR, 0)
 		nv_iord($r15, NV_PGRAPH_FECS_CHAN_NEXT, 0)
 
@@ -270,6 +272,7 @@ main:
 		chsw_done:
 		mov $r2 NV_PGRAPH_FECS_CHSW_ACK
 		nv_iowr(NV_PGRAPH_FECS_CHSW, 0, $r2)
+		trace_end
 		trace_clr(T_AUTO)
 		bra #main
 
