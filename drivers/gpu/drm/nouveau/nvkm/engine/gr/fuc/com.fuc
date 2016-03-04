@@ -239,6 +239,10 @@ mmctx_xfer:
 	bset $r11 12			// QLIMIT = 0x10
 	xbit $r14 $r10 1
 	shl b32 $r14 17
+	// Initialise a negative counter in r12
+	sub b32 $r12 $r12 $r13
+	sar b32 $r12 $r12 2
+
 	or $r11 $r14			// START_TRIGGER
 	nv_iowr(NV_PGRAPH_FECS_MMCTX_CTRL, 0, $r11)
 
@@ -251,12 +255,11 @@ mmctx_xfer:
 			bra e #mmctx_wait_free
 
 		// queue up an entry
-		ld b32 $r14 D[$r12]
+		ld b32 $r14 D[$r13 + $r12 * 0x04]
 		or $r14 $r9
 		nv_iowr(NV_PGRAPH_FECS_MMCTX_QUEUE, 0, $r14)
-		add b32 $r12 4
-		cmpu b32 $r12 $r13
-		bra ne #mmctx_exec_loop
+		add b32 $r12 1
+		bra nz #mmctx_exec_loop
 
 	xbit $r11 $r10 2
 	bra ne #mmctx_stop
