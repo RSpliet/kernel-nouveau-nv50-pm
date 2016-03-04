@@ -31,6 +31,9 @@
 //	$r15 data
 //
 queue_put:
+	push $r9
+	push $r8
+	
 	// make sure we have space..
 	ld b32 $r8 D[$r13 + 0x0]	// GET
 	ld b32 $r9 D[$r13 + 0x4]	// PUT
@@ -54,6 +57,9 @@ queue_put:
 	add b32 $r9 1
 	and $r9 0xf
 	st b32 D[$r13 + 0x4] $r9
+	
+	pop $r8
+	pop $r9
 	ret
 
 // queue_get - fetch request from queue
@@ -65,6 +71,9 @@ queue_put:
 // 	$r15 data
 //
 queue_get:
+	push $r9
+	push $r8
+
 	bset $flags $p1
 	ld b32 $r8 D[$r13 + 0x0]	// GET
 	ld b32 $r9 D[$r13 + 0x4]	// PUT
@@ -83,7 +92,10 @@ queue_get:
 		and $r8 0xf
 		st b32 D[$r13 + 0x0] $r8
 		bclr $flags $p1
+
 queue_get_done:
+	pop $r8
+	pop $r9
 	ret
 
 // nv_rd32 - read 32-bit value from nv register
@@ -92,16 +104,22 @@ queue_get_done:
 // Out: $r15 value
 //
 nv_rd32:
-	mov b32 $r12 $r14
-	bset $r12 31			// MMIO_CTRL_PENDING
-	nv_iowr(NV_PGRAPH_FECS_MMIO_CTRL, 0, $r12)
+	push $r9
+
+	mov b32 $r9 $r14
+	bset $r9 31			// MMIO_CTRL_PENDING
+	nv_iowr(NV_PGRAPH_FECS_MMIO_CTRL, 0, $r9)
 	nv_rd32_wait:
-		nv_iord($r12, NV_PGRAPH_FECS_MMIO_CTRL, 0)
-		xbit $r12 $r12 31
+		nv_iord($r9, NV_PGRAPH_FECS_MMIO_CTRL, 0)
+		xbit $r9 $r9 31
 		bra ne #nv_rd32_wait
+	push $r10
 	mov $r10 6			// DONE_MMIO_RD
 	call(wait_doneo)
+	pop $r10
 	nv_iord($r15, NV_PGRAPH_FECS_MMIO_RDVAL, 0)
+
+	pop $r9
 	ret
 
 // nv_wr32 - write 32-bit value to nv register
@@ -110,15 +128,19 @@ nv_rd32:
 //      $r15 value
 //
 nv_wr32:
+	push $r9
+
 	nv_iowr(NV_PGRAPH_FECS_MMIO_WRVAL, 0, $r15)
-	mov b32 $r12 $r14
-	bset $r12 31			// MMIO_CTRL_PENDING
-	bset $r12 30			// MMIO_CTRL_WRITE
-	nv_iowr(NV_PGRAPH_FECS_MMIO_CTRL, 0, $r12)
+	mov b32 $r9 $r14
+	bset $r9 31			// MMIO_CTRL_PENDING
+	bset $r9 30			// MMIO_CTRL_WRITE
+	nv_iowr(NV_PGRAPH_FECS_MMIO_CTRL, 0, $r9)
 	nv_wr32_wait:
-		nv_iord($r12, NV_PGRAPH_FECS_MMIO_CTRL, 0)
-		xbit $r12 $r12 31
+		nv_iord($r9, NV_PGRAPH_FECS_MMIO_CTRL, 0)
+		xbit $r9 $r9 31
 		bra ne #nv_wr32_wait
+
+	pop $r9
 	ret
 
 // wait_donez - wait on FUC_DONE bit to become clear
@@ -126,13 +148,17 @@ nv_wr32:
 // In : $r10 bit to wait on
 //
 wait_donez:
+	push $r9
+
 	trace_set(T_WAIT);
 	nv_iowr(NV_PGRAPH_FECS_CC_SCRATCH_VAL(6), 0, $r10)
 	wait_donez_ne:
-		nv_iord($r8, NV_PGRAPH_FECS_SIGNAL, 0)
-		xbit $r8 $r8 $r10
+		nv_iord($r9, NV_PGRAPH_FECS_SIGNAL, 0)
+		xbit $r9 $r9 $r10
 		bra ne #wait_donez_ne
 	trace_clr(T_WAIT)
+
+	pop $r9
 	ret
 
 // wait_doneo - wait on FUC_DONE bit to become set
@@ -140,13 +166,17 @@ wait_donez:
 // In : $r10 bit to wait on
 //
 wait_doneo:
+	push $r9
+
 	trace_set(T_WAIT);
 	nv_iowr(NV_PGRAPH_FECS_CC_SCRATCH_VAL(6), 0, $r10)
 	wait_doneo_e:
-		nv_iord($r8, NV_PGRAPH_FECS_SIGNAL, 0)
-		xbit $r8 $r8 $r10
+		nv_iord($r9, NV_PGRAPH_FECS_SIGNAL, 0)
+		xbit $r9 $r9 $r10
 		bra e #wait_doneo_e
 	trace_clr(T_WAIT)
+
+	pop $r9
 	ret
 
 // mmctx_size - determine size of a mmio list transfer
@@ -156,6 +186,9 @@ wait_doneo:
 // Out: $r15 transfer size (in bytes)
 //
 mmctx_size:
+	push $r9
+	push $r8
+
 	clear b32 $r9
 	nv_mmctx_size_loop:
 		ld b32 $r8 D[$r14]
@@ -167,6 +200,9 @@ mmctx_size:
 		cmpu b32 $r14 $r15
 		bra ne #nv_mmctx_size_loop
 	mov b32 $r15 $r9
+	
+	pop $r8
+	pop $r9
 	ret
 
 // mmctx_xfer - execute a list of mmio transfers
@@ -182,6 +218,8 @@ mmctx_size:
 //	$r15 multi_mask
 //
 mmctx_xfer:
+	push $r9
+
 	trace_set(T_MMCTX)
 	clear b32 $r9
 	or $r11 $r11
@@ -243,6 +281,8 @@ mmctx_xfer:
 			xbit $r11 $r11 18
 			bra ne #mmctx_stop_wait
 	mmctx_done:
+
+	pop $r9
 	trace_clr(T_MMCTX)
 	ret
 
@@ -253,22 +293,29 @@ strand_wait:
 	mov $r10 2
 	call(wait_donez)
 	pop $r10
+	
 	ret
 
 // unknown - call before issuing strand commands
 //
 strand_pre:
+	push $r9
+
 	mov $r9 NV_PGRAPH_FECS_STRAND_CMD_ENABLE
 	nv_iowr(NV_PGRAPH_FECS_STRAND_CMD, 0x3f, $r9)
 	call(strand_wait)
+
+	pop $r9
 	ret
 
 // unknown - call after issuing strand commands
 //
 strand_post:
+	push $r9
 	mov $r9 NV_PGRAPH_FECS_STRAND_CMD_DISABLE
 	nv_iowr(NV_PGRAPH_FECS_STRAND_CMD, 0x3f, $r9)
 	call(strand_wait)
+	pop $r9
 	ret
 
 // Selects strand set?!
@@ -276,14 +323,18 @@ strand_post:
 // In: $r14 id
 //
 strand_set:
-	mov $r12 0xf
-	nv_iowr(NV_PGRAPH_FECS_STRAND_FILTER, 0x3f, $r12)
-	mov $r12 NV_PGRAPH_FECS_STRAND_CMD_DEACTIVATE_FILTER
-	nv_iowr(NV_PGRAPH_FECS_STRAND_CMD, 0x3f, $r12)
+	push $r9
+
+	mov $r9 0xf
+	nv_iowr(NV_PGRAPH_FECS_STRAND_FILTER, 0x3f, $r9)
+	mov $r9 NV_PGRAPH_FECS_STRAND_CMD_DEACTIVATE_FILTER
+	nv_iowr(NV_PGRAPH_FECS_STRAND_CMD, 0x3f, $r9)
 	nv_iowr(NV_PGRAPH_FECS_STRAND_FILTER, 0x3f, $r14)
-	mov $r12 NV_PGRAPH_FECS_STRAND_CMD_ACTIVATE_FILTER
-	nv_iowr(NV_PGRAPH_FECS_STRAND_CMD, 0x3f, $r12)
+	mov $r9 NV_PGRAPH_FECS_STRAND_CMD_ACTIVATE_FILTER
+	nv_iowr(NV_PGRAPH_FECS_STRAND_CMD, 0x3f, $r9)
 	call(strand_wait)
+
+	pop $r9
 	ret
 
 // Initialise strand context data
@@ -294,20 +345,28 @@ strand_set:
 // Strandset(?) 3 hardcoded currently
 //
 strand_ctx_init:
+	push $r9
+	push $r8
+	push $r7
+	push $r6
+
 	trace_set(T_STRINIT)
 	call(strand_pre)
+	
+	push $r14
 	mov $r14 3
 	call(strand_set)
+	pop $r14
 
-	clear b32 $r12
-	nv_iowr(NV_PGRAPH_FECS_STRAND_SELECT, 0x3f, $r12)
-	mov $r12 NV_PGRAPH_FECS_STRAND_CMD_SEEK
-	nv_iowr(NV_PGRAPH_FECS_STRAND_CMD, 0x3f, $r12)
+	clear b32 $r9
+	nv_iowr(NV_PGRAPH_FECS_STRAND_SELECT, 0x3f, $r9)
+	mov $r9 NV_PGRAPH_FECS_STRAND_CMD_SEEK
+	nv_iowr(NV_PGRAPH_FECS_STRAND_CMD, 0x3f, $r9)
 	call(strand_wait)
-	sub b32 $r12 $r0 1
-	nv_iowr(NV_PGRAPH_FECS_STRAND_DATA, 0x3f, $r12)
-	mov $r12 NV_PGRAPH_FECS_STRAND_CMD_GET_INFO
-	nv_iowr(NV_PGRAPH_FECS_STRAND_CMD, 0x3f, $r12)
+	sub b32 $r9 $r0 1
+	nv_iowr(NV_PGRAPH_FECS_STRAND_DATA, 0x3f, $r9)
+	mov $r9 NV_PGRAPH_FECS_STRAND_CMD_GET_INFO
+	nv_iowr(NV_PGRAPH_FECS_STRAND_CMD, 0x3f, $r9)
 	call(strand_wait)
 	call(strand_post)
 
@@ -316,20 +375,25 @@ strand_ctx_init:
 	// about it later then.
 	nv_mkio($r8, NV_PGRAPH_FECS_STRAND_SAVE_SWBASE, 0x00)
 	nv_iord($r9, NV_PGRAPH_FECS_STRANDS_CNT, 0x00)
-	shr b32 $r14 $r15 8
+	shr b32 $r6 $r15 8
 	ctx_init_strand_loop:
-		iowr I[$r8 + 0x000] $r14	// STRAND_SAVE_SWBASE
-		iowr I[$r8 + 0x100] $r14	// STRAND_LOAD_SWBASE
-		iord $r10 I[$r8 + 0x200]	// STRAND_SIZE
-		shr b32 $r10 6
-		add b32 $r10 1
-		add b32 $r14 $r10
+		iowr I[$r8 + 0x000] $r6	// STRAND_SAVE_SWBASE
+		iowr I[$r8 + 0x100] $r6	// STRAND_LOAD_SWBASE
+		iord $r7 I[$r8 + 0x200]	// STRAND_SIZE
+		shr b32 $r7 6
+		add b32 $r7 1
+		add b32 $r6 $r7
 		add b32 $r8 4
 		sub b32 $r9 1
 		bra ne #ctx_init_strand_loop
 
-	shl b32 $r14 8
-	sub b32 $r15 $r14 $r15
+	shl b32 $r6 8
+	sub b32 $r15 $r6 $r15
+
+	pop $r6
+	pop $r7
+	pop $r8
+	pop $r9
 	trace_clr(T_STRINIT)
 	ret
 #endif
