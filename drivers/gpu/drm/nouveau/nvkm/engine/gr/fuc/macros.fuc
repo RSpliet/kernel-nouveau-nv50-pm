@@ -251,11 +251,15 @@
 */	call(nv_wr32)
 
 #define trace_set(bit) /*
+*/	push $r9 /*
 */	clear b32 $r9 /*
 */	bset $r9 bit /*
-*/	nv_iowr(NV_PGRAPH_FECS_CC_SCRATCH_SET(7), 0, $r9)
+*/	nv_iowr(NV_PGRAPH_FECS_CC_SCRATCH_SET(7), 0, $r9) /*
+*/	pop $r9
 
 #define trace_clr(bit) /*
+*/	push $r9 /*
 */	clear b32 $r9 /*
 */	bset $r9 bit /*
-*/	nv_iowr(NV_PGRAPH_FECS_CC_SCRATCH_CLR(7), 0, $r9)
+*/	nv_iowr(NV_PGRAPH_FECS_CC_SCRATCH_CLR(7), 0, $r9) /*
+*/	pop $r9

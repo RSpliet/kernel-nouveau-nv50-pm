@@ -365,10 +365,16 @@ ih:
 // activities to the HUB fuc
 //
 hub_barrier_done:
+	push $r15
+	push $r14
+	
 	mov $r15 1
 	ld b32 $r14 D[$r0 + #gpc_id]
 	shl b32 $r15 $r14
 	nv_wr32(0x409418, $r15)	// 0x409418 - HUB_BAR_SET
+	
+	pop $r14
+	pop $r15
 	ret
 
 // Disables various things, waits a bit, and re-enables them..
@@ -378,15 +384,21 @@ hub_barrier_done:
 // funny things happen.
 //
 ctx_redswitch:
-	mov $r15 NV_PGRAPH_GPCX_GPCCS_RED_SWITCH_POWER
-	nv_iowr(NV_PGRAPH_GPCX_GPCCS_RED_SWITCH, 0, $r15)
-	mov $r14 8
+	push $r9
+	push $r8
+
+	mov $r9 NV_PGRAPH_GPCX_GPCCS_RED_SWITCH_POWER
+	nv_iowr(NV_PGRAPH_GPCX_GPCCS_RED_SWITCH, 0, $r9)
+	mov $r8 8
 	ctx_redswitch_delay:
-		sub b32 $r14 1
+		sub b32 $r8 1
 		bra ne #ctx_redswitch_delay
-	or $r15 NV_PGRAPH_GPCX_GPCCS_RED_SWITCH_UNK11
-	or $r15 NV_PGRAPH_GPCX_GPCCS_RED_SWITCH_ENABLE
-	nv_iowr(NV_PGRAPH_GPCX_GPCCS_RED_SWITCH, 0, $r15)
+	or $r9 NV_PGRAPH_GPCX_GPCCS_RED_SWITCH_UNK11
+	or $r9 NV_PGRAPH_GPCX_GPCCS_RED_SWITCH_ENABLE
+	nv_iowr(NV_PGRAPH_GPCX_GPCCS_RED_SWITCH, 0, $r9)
+	
+	pop $r8
+	pop $r9
 	ret
 
 // Transfer GPC context data between GPU and storage area
@@ -398,6 +410,12 @@ ctx_redswitch:
 //		on load it means: "a save preceeded this load"
 //
 ctx_xfer:
+	push $r14
+	push $r13
+	push $r12
+	push $r11
+	push $r10
+
 	// set context base address
 	nv_iowr(NV_PGRAPH_GPCX_GPCCS_MEM_BASE, 0, $r15)
 #if CHIPSET >= GM107
@@ -409,11 +427,11 @@ ctx_xfer:
 
 	// strands
 	call(strand_pre)
-	clear b32 $r2
-	nv_iowr(NV_PGRAPH_GPCX_GPCCS_STRAND_SELECT, 0x3f, $r2)
-	xbit $r2 $flags $p1	// SAVE/LOAD
-	add b32 $r2 NV_PGRAPH_GPCX_GPCCS_STRAND_CMD_SAVE
-	nv_iowr(NV_PGRAPH_GPCX_GPCCS_STRAND_CMD, 0x3f, $r2)
+	clear b32 $r10
+	nv_iowr(NV_PGRAPH_GPCX_GPCCS_STRAND_SELECT, 0x3f, $r10)
+	xbit $r10 $flags $p1	// SAVE/LOAD
+	add b32 $r10 NV_PGRAPH_GPCX_GPCCS_STRAND_CMD_SAVE
+	nv_iowr(NV_PGRAPH_GPCX_GPCCS_STRAND_CMD, 0x3f, $r10)
 
 #if CHIPSET >= GM107
 	tpc_strand_enable();
@@ -432,7 +450,7 @@ ctx_xfer:
 	add b32 $r11 $r12	// base = NV_PGRAPH_GPCn
 	ld b32 $r12 D[$r0 + #gpc_mmio_list_head]
 	ld b32 $r13 D[$r0 + #gpc_mmio_list_tail]
-	mov $r14 0		// not multi
+	mov $r14 0		// not multi, $r15 irrelevant
 	call(mmctx_xfer)
 
 	// per-TPC mmio context
@@ -446,8 +464,8 @@ ctx_xfer:
 	add b32 $r11 $r12	// base = NV_PGRAPH_GPCn_TPC0
 	ld b32 $r12 D[$r0 + #tpc_mmio_list_head]
 	ld b32 $r13 D[$r0 + #tpc_mmio_list_tail]
-	ld b32 $r15 D[$r0 + #tpc_mask]
 	mov $r14 0x800		// stride = 0x800
+	ld b32 $r15 D[$r0 + #tpc_mask]
 	call(mmctx_xfer)
 
 #if NV_PGRAPH_GPCX_UNK__SIZE > 0
@@ -460,8 +478,8 @@ ctx_xfer:
 	add b32 $r11 $r12	// base = NV_PGRAPH_GPCn_UNK0
 	ld b32 $r12 D[$r0 + #unk_mmio_list_head]
 	ld b32 $r13 D[$r0 + #unk_mmio_list_tail]
-	ld b32 $r15 D[$r0 + #unk_mask]
 	mov $r14 0x200		// stride = 0x200
+	ld b32 $r15 D[$r0 + #unk_mask]
 	call(mmctx_xfer)
 #endif
 
@@ -485,5 +503,11 @@ ctx_xfer:
 	// mark completion in HUB's barrier
 	ctx_xfer_done:
 	call(hub_barrier_done)
+
+	pop $r10
+	pop $r11
+	pop $r12
+	pop $r13
+	pop $r14
 	ret
 #endif
