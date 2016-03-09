@@ -204,6 +204,8 @@ void gf100_gr_icmd(struct gf100_gr *, const struct gf100_gr_pack *);
 void gf100_gr_mthd(struct gf100_gr *, const struct gf100_gr_pack *);
 int  gf100_gr_init_ctxctl(struct gf100_gr *);
 
+void gf100_grctx_debug_dump_stack(struct nvkm_gr *gr);
+
 /* register init value lists */
 
 extern const struct gf100_gr_init gf100_gr_init_main_0[];

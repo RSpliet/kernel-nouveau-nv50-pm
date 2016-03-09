@@ -25,6 +25,7 @@ struct nvkm_gr_func {
 	/* Returns chipset-specific counts of units packed into an u64.
 	 */
 	u64 (*units)(struct nvkm_gr *);
+	void (*grctx_debug_dump_stack)(struct nvkm_gr *gr);
 	struct nvkm_sclass sclass[];
 };
 

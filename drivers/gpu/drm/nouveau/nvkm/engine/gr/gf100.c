@@ -1711,6 +1711,7 @@ gf100_gr_ = {
 	.units = gf100_gr_units,
 	.chan_new = gf100_gr_chan_new,
 	.object_get = gf100_gr_object_get,
+	.grctx_debug_dump_stack = gf100_grctx_debug_dump_stack,
 };
 
 int

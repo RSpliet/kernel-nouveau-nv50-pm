@@ -984,6 +984,37 @@ gf100_grctx_pack_tpc[] = {
 /*******************************************************************************
  * PGRAPH context implementation
  ******************************************************************************/
+void
+gf100_grctx_debug_dump_stack(struct nvkm_gr *gr)
+{
+	struct nvkm_subdev *subdev = &gr->engine.subdev;
+	struct nvkm_device *device = subdev->device;
+	u32 sp, pc, tail, tmp, data;
+
+	/* XXX: SP and PC no longer publicly available ? */
+	if (device->chipset >= 0xf0)
+		return;
+
+	sp = nvkm_rd32(device, 0x409fec) & 0xffff;
+	pc = nvkm_rd32(device, 0x409ff0) & 0xffff;
+	if (sp == 0) {
+		nvkm_warn(subdev, "GRCTX HUB pc:%04x stack empty.\n", pc);
+		return;
+	}
+	nvkm_warn(subdev, "GRCTX HUB pc:%04x stack:\n", pc);
+
+	tmp = nvkm_rd32(device, 0x4091c0);
+	nvkm_wr32(device, 0x4091c0, 0x02000000 | sp);
+
+	tail = (nvkm_rd32(device, 0x409108) & 0x2fe) >> 1;
+
+	for (; sp <= tail; sp += 4) {
+		data = nvkm_rd32(device, 0x4091c4);
+		nvkm_warn(subdev, "  %04x: %08x\n", sp, data);
+	}
+
+	nvkm_wr32(device, 0x4091c0, tmp);
+}
 
 int
 gf100_grctx_mmio_data(struct gf100_grctx *info, u32 size, u32 align, u32 access)

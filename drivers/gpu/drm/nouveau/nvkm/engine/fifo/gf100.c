@@ -29,6 +29,8 @@
 #include <core/gpuobj.h>
 #include <subdev/bar.h>
 #include <engine/sw.h>
+#include <engine/gr.h>
+#include "../gr/priv.h"
 
 #include <nvif/class.h>
 
@@ -225,6 +227,7 @@ gf100_fifo_intr_sched(struct gf100_fifo *fifo)
 {
 	struct nvkm_subdev *subdev = &fifo->base.engine.subdev;
 	struct nvkm_device *device = subdev->device;
+	struct nvkm_gr *gr = device->gr;
 	u32 intr = nvkm_rd32(device, 0x00254c);
 	u32 code = intr & 0x000000ff;
 	const struct nvkm_enum *en;
@@ -235,6 +238,8 @@ gf100_fifo_intr_sched(struct gf100_fifo *fifo)
 
 	switch (code) {
 	case 0x0a:
+		if (gr && gr->func->grctx_debug_dump_stack)
+			gr->func->grctx_debug_dump_stack(gr);
 		gf100_fifo_intr_sched_ctxsw(fifo);
 		break;
 	default:
