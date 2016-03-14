@@ -366,11 +366,20 @@ gf100_clk_prog_2(struct gf100_clk *clk, int idx)
 		if (info->coef) {
 			nvkm_wr32(device, addr + 0x04, info->coef);
 			nvkm_mask(device, addr + 0x00, 0x00000001, 0x00000001);
-			nvkm_msec(device, 2000,
+
+			/* Test PLL lock */
+			nvkm_mask(device, addr + 0x00, 0x00000010, 0x00000000);
+			if (nvkm_msec(device, 2000,
 				if (nvkm_rd32(device, addr + 0x00) & 0x00020000)
 					break;
-			);
-			nvkm_mask(device, addr + 0x00, 0x00020004, 0x00000004);
+			) < 0) {
+				nvkm_warn(&clk->base.subdev,
+						"Could not lock PLL %d", idx);
+			}
+			nvkm_mask(device, addr + 0x00, 0x00000010, 0x00000010);
+
+			/* Enable sync mode */
+			nvkm_mask(device, addr + 0x00, 0x00000004, 0x00000004);
 		}
 	}
 }
