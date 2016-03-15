@@ -100,13 +100,14 @@ nvbios_volt_parse(struct nvkm_bios *bios, u8 *ver, u8 *hdr, u8 *cnt, u8 *len,
 
 		/* offset 4 seems to be a flag byte */
 		if (nvbios_rd32(bios, volt + 0x4) & 1) {
-			info->type      = NVBIOS_VOLT_PWM;
-			info->pwm_freq  = nvbios_rd32(bios, volt + 0x5) / 1000;
-			info->pwm_range = nvbios_rd32(bios, volt + 0x16);
+			info->type        = NVBIOS_VOLT_PWM;
+			info->pwm_freq    = nvbios_rd32(bios, volt + 0x5) / 1000;
+			info->pwm_range   = nvbios_rd32(bios, volt + 0x16);
 		} else {
-			info->type      = NVBIOS_VOLT_GPIO;
-			info->vidmask   = nvbios_rd08(bios, volt + 0x06);
-			info->step      = nvbios_rd16(bios, volt + 0x16);
+			info->type        = NVBIOS_VOLT_GPIO;
+			info->vidmask     = nvbios_rd08(bios, volt + 0x06);
+			info->step        = nvbios_rd16(bios, volt + 0x16);
+			info->entry_based = !(nvbios_rd08(bios, volt + 0x4) & 0x2);
 		}
 		break;
 	}
