@@ -41,7 +41,7 @@ ramxlat(const struct ramxlat *xlat, int id)
 }
 
 static const struct ramxlat
-ramgddr3_cl_lo[] = {
+ramgddr3_cl[] = {
 	{ 5, 5 }, { 7, 7 }, { 8, 0 }, { 9, 1 }, { 10, 2 }, { 11, 3 }, { 12, 8 },
 	/* the below are mentioned in some, but not all, gddr3 docs */
 	{ 13, 9 }, { 14, 6 },
@@ -52,14 +52,7 @@ ramgddr3_cl_lo[] = {
 };
 
 static const struct ramxlat
-ramgddr3_cl_hi[] = {
-	{ 10, 2 }, { 11, 3 }, { 12, 4 }, { 13, 5 }, { 14, 6 }, { 15, 7 },
-	{ 16, 0 }, { 17, 1 },
-	{ -1 }
-};
-
-static const struct ramxlat
-ramgddr3_wr_lo[] = {
+ramgddr3_wr[] = {
 	{ 5, 2 }, { 7, 4 }, { 8, 5 }, { 9, 6 }, { 10, 7 },
 	{ 11, 0 }, { 13 , 1 },
 	/* the below are mentioned in some, but not all, gddr3 docs */
@@ -70,7 +63,7 @@ ramgddr3_wr_lo[] = {
 int
 nvkm_gddr3_calc(struct nvkm_ram *ram)
 {
-	int CL, WR, CWL, DLL = 0, ODT = 0, RON, hi;
+	int CL, WR, CWL, DLL = 0, ODT = 0, RON;
 
 	switch (ram->next->bios.timing_ver) {
 	case 0x10:
@@ -98,9 +91,8 @@ nvkm_gddr3_calc(struct nvkm_ram *ram)
 		ODT =  (ram->mr[1] & 0xc) >> 2;
 	}
 
-	hi = ram->mr[2] & 0x1;
-	CL  = ramxlat(hi ? ramgddr3_cl_hi : ramgddr3_cl_lo, CL);
-	WR  = ramxlat(ramgddr3_wr_lo, WR);
+	CL  = ramxlat(ramgddr3_cl, CL);
+	WR  = ramxlat(ramgddr3_wr, WR);
 	if (CL < 0 || CWL < 1 || CWL > 7 || WR < 0)
 		return -EINVAL;
 
