@@ -620,6 +620,12 @@ gf100_ram_train_init(struct nvkm_ram *ram)
 int
 gf100_ram_init(struct nvkm_ram *base)
 {
+	struct nvkm_subdev *subdev = &base->fb->subdev;
+	struct nvkm_device *device = subdev->device;
+
+	/* XXX Why does the blob do this? */
+	nvkm_mask(device, 0x137360, 0x00000002, 0x00000000);
+
 	/* XXX: Don't hook up yet for bisectability */
 	return 0;
 }
