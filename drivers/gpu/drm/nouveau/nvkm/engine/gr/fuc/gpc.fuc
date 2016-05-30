@@ -134,6 +134,9 @@ init:
 	mov $r2 NV_PGRAPH_GPCX_GPCCS_ACCESS_FIFO
 	nv_iowr(NV_PGRAPH_GPCX_GPCCS_ACCESS, 0, $r2)
 
+	// Mark fifo empty
+	bclr $flags $p0 
+
 	// setup i0 handler, and route all interrupts to it
 	mov $r1 #ih
 	mov $iv0 $r1
@@ -288,7 +291,6 @@ init:
 // handler, pulls a command from the queue and executes its handler
 //
 main:
-	bset $flags $p0
 	sleep $p0
 	mov $r13 #cmd_queue
 	call(queue_get)

@@ -81,6 +81,9 @@ init:
 	mov $r2 NV_PGRAPH_FECS_ACCESS_FIFO
 	nv_iowr(NV_PGRAPH_FECS_ACCESS, 0, $r2)
 
+	// Mark fifo empty
+	bclr $flags $p0 
+
 	// setup i0 handler, and route all interrupts to it
 	mov $r1 #ih
 	mov $iv0 $r1
@@ -221,7 +224,6 @@ init:
 //
 main:
 	// sleep until we have something to do
-	bset $flags $p0
 	sleep $p0
 	mov $r13 #cmd_queue
 	call(queue_get)
@@ -231,6 +233,7 @@ main:
 	cmpu b32 $r14 0x4001
 	bra ne #main_not_ctx_switch
 		trace_set(T_AUTO)
+		call(gpcs_idle_wait)
 		trace_start
 		nv_iord($r1, NV_PGRAPH_FECS_CHAN_ADDR, 0)
 		nv_iord($r15, NV_PGRAPH_FECS_CHAN_NEXT, 0)
@@ -288,6 +291,7 @@ main:
 	cmpu b32 $r14 0x0002
 	bra ne #main_not_ctx_save
 		trace_set(T_SAVE)
+		call(gpcs_idle_wait)
 		bclr $flags $p1
 		bclr $flags $p2
 		call(ctx_xfer)
@@ -447,6 +451,7 @@ ctx_4170w:
 
 	pop $r14
 	pop $r15
+
 	ret
 
 // Disables various things, waits a bit, and re-enables them..
@@ -654,6 +659,18 @@ ctx_mmio_exec:
 	pop $r14
 	ret
 
+gpcs_idle_wait:
+	push $r9
+	mov $r9 4
+	nv_iowr(0x409c08, 0, $r9)
+	gpcs_idle_wait_loop:
+		nv_iord($r9, 0x409c00, 0)
+		and $r9 0x2000
+		bra ne #gpcs_idle_wait_loop
+	
+	pop $r9
+	ret
+
 // Transfer HUB context data between GPU and storage area
 //
 // In: $r15 channel address
@@ -670,14 +687,6 @@ ctx_xfer:
 	push $r10
 	push $r9
 	push $r8
-	
-	// according to mwk, some kind of wait for idle
-	mov $r9 4
-	nv_iowr(0x409c08, 0, $r9)
-	ctx_xfer_idle:
-		nv_iord($r9, 0x409c00, 0)
-		and $r9 0x2000
-		bra ne #ctx_xfer_idle
 
 	// Mov instead of push to avoid memleak for conditional pop
 	mov b32 $r9 $r15	

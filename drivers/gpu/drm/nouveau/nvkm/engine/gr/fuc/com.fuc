@@ -75,6 +75,7 @@ queue_get:
 	push $r8
 
 	bset $flags $p1
+	bset $flags $p0
 	ld b32 $r8 D[$r13 + 0x0]	// GET
 	ld b32 $r9 D[$r13 + 0x4]	// PUT
 	cmpu b32 $r8 $r9
@@ -92,6 +93,11 @@ queue_get:
 		and $r8 0xf
 		st b32 D[$r13 + 0x0] $r8
 		bclr $flags $p1
+		
+		ld b32 $r9 D[$r13 + 0x4]
+		cmpu b32 $r8 $r9
+		bra e #queue_get_done
+			bclr $flags $p0
 
 queue_get_done:
 	pop $r8
