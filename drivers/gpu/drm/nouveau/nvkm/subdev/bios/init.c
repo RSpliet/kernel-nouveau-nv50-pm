@@ -2196,6 +2196,32 @@ init_gpio_ne(struct nvbios_init *init)
 	init->offset += count;
 }
 
+/**
+ * INIT_ZM_REG_SET_LOOP - opcode 0xaf
+ *
+ */
+static void
+init_zm_reg_set_loop(struct nvbios_init *init)
+{
+	struct nvkm_bios *bios = init->bios;
+	u8  sets = nvbios_rd08(bios, init->offset + 1);
+	u8  regs = nvbios_rd08(bios, init->offset + 2);
+	u32 reg_off = init->offset + 3;
+	u32 addr, data, i, j;
+
+	trace("ZM_REG_SET_LOOP 0x%02hhx 0x%02hhx\n", sets, regs);
+	init->offset += 3 + (regs * 4);
+
+	for (i = 0; i < sets; i++) {
+		for (j = 0; j < regs; j++, init->offset += 4) {
+			addr = nvbios_rd32(bios, reg_off + (j * 4));
+			data = nvbios_rd32(bios, init->offset);
+			init_wr32(init, addr, data);
+			trace("\tR[0x%06x] = 0x%08x\n", addr, data);
+		}
+	}
+}
+
 static struct nvbios_init_opcode {
 	void (*exec)(struct nvbios_init *);
 } init_opcode[] = {
@@ -2268,6 +2294,7 @@ static struct nvbios_init_opcode {
 	[0x9a] = { init_i2c_long_if },
 	[0xa9] = { init_gpio_ne },
 	[0xaa] = { init_reserved },
+	[0xaf] = { init_zm_reg_set_loop },
 };
 
 #define init_opcode_nr (sizeof(init_opcode) / sizeof(init_opcode[0]))
