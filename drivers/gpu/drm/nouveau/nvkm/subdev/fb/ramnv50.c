@@ -120,8 +120,8 @@ nv50_ram_timing_calc(struct nv50_ram *ram, u32 *timing)
 		    (T(CL) - 1) << 8 |
 		    (T(CL) - 1);
 	timing[4] = (cur4 & 0xffff0000) |
-		    T(0d) << 8 |
-		    T(0d);
+		    T(XPDLL) << 8 |
+		    T(XPDLL);
 	timing[5] = T(RFC) << 24 |
 		    max_t(u8, T(RCDRD), T(RCDWR)) << 16 |
 		    T(RP);
