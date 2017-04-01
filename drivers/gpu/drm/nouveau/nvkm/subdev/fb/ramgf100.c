@@ -556,22 +556,50 @@ gf100_ram_train_init_0(struct nvkm_ram *ram, struct gt215_ram_train *train)
 	struct nvkm_device *device = subdev->device;
 	int i, j;
 
-	if ((train->mask & 0x03c3) != 0x03c3) {
-		nvkm_warn(subdev, "missing link training data\n");
-		return -EINVAL;
-	}
+	static const u8  train0[] = {
+		0x00, 0xff, 0x55, 0xaa, 0x33, 0xcc,
+		0x00, 0xff, 0xff, 0x00, 0xff, 0x00,
+	};
 
-	for (i = 0; i < 0x30; i++) {
-		for (j = 0; j < 8; j += 4) {
-			nvkm_wr32(device, 0x10f968 + j, 0x00000000 | (i << 8));
-			nvkm_wr32(device, 0x10f920 + j, 0x00000000 |
-						   train->type08.data[i] << 4 |
-						   train->type06.data[i]);
-			nvkm_wr32(device, 0x10f918 + j, train->type00.data[i]);
-			nvkm_wr32(device, 0x10f920 + j, 0x00000100 |
-						   train->type09.data[i] << 4 |
-						   train->type07.data[i]);
-			nvkm_wr32(device, 0x10f918 + j, train->type01.data[i]);
+	static const u32 train1[] = {
+		0x00000000, 0xffffffff,
+		0x55555555, 0xaaaaaaaa,
+		0x33333333, 0xcccccccc,
+		0xf0f0f0f0, 0x0f0f0f0f,
+		0x00ff00ff, 0xff00ff00,
+		0x0000ffff, 0xffff0000,
+	};
+
+	if ((train->mask & 0x03c3) == 0x03c3) {
+		for (i = 0; i < 0x30; i++) {
+			for (j = 0; j < 8; j += 4) {
+				nvkm_wr32(device, 0x10f968 + j, (i << 8));
+				nvkm_wr32(device, 0x10f920 + j, 0x00000000 |
+						train->type08.data[i] << 4 |
+						train->type06.data[i]);
+				nvkm_wr32(device, 0x10f918 + j,
+						train->type00.data[i]);
+				nvkm_wr32(device, 0x10f920 + j, 0x00000100 |
+						train->type09.data[i] << 4 |
+						train->type07.data[i]);
+				nvkm_wr32(device, 0x10f918 + j,
+						train->type01.data[i]);
+			}
+		}
+	} else {
+		nvkm_debug(subdev,
+			"missing link training data, using defaults\n");
+
+		for (i = 0; i < 0x30; i++) {
+			for (j = 0; j < 8; j += 4) {
+				nvkm_wr32(device, 0x10f968 + j, (i << 8));
+				nvkm_wr32(device, 0x10f920 + j, 0x00000100 |
+								train0[i % 12]);
+				nvkm_wr32(device, 0x10f918 + j, train1[i % 12]);
+				nvkm_wr32(device, 0x10f920 + j, 0x00000000 |
+								train0[i % 12]);
+				nvkm_wr32(device, 0x10f918 + j, train1[i % 12]);
+			}
 		}
 	}
 
