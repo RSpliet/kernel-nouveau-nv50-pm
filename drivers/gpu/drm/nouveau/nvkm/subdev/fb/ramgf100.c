@@ -654,8 +654,7 @@ gf100_ram_init(struct nvkm_ram *base)
 	/* XXX Why does the blob do this? */
 	nvkm_mask(device, 0x137360, 0x00000002, 0x00000000);
 
-	/* XXX: Don't hook up yet for bisectability */
-	return 0;
+	return gf100_ram_train_init(base);
 }
 
 u32
