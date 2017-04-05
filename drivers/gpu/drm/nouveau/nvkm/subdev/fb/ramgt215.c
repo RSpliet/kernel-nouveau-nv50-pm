@@ -75,7 +75,7 @@ struct gt215_ramfuc {
 	struct ramfuc_reg r_gpio[4];
 };
 
-struct gt215_ltrain {
+struct gt215_ram_train_ddr3 {
 	enum {
 		NVA3_TRAIN_UNKNOWN,
 		NVA3_TRAIN_UNSUPPORTED,
@@ -92,11 +92,11 @@ struct gt215_ltrain {
 struct gt215_ram {
 	struct nvkm_ram base;
 	struct gt215_ramfuc fuc;
-	struct gt215_ltrain ltrain;
+	struct gt215_ram_train_ddr3 ltrain;
 };
 
 static void
-gt215_link_train_calc(u32 *vals, struct gt215_ltrain *train)
+gt215_link_train_calc(u32 *vals, struct gt215_ram_train_ddr3 *train)
 {
 	int i, lo, hi;
 	u8 median[8], bins[4] = {0, 0, 0, 0}, bin = 0, qty = 0;
@@ -152,7 +152,7 @@ gt215_link_train_calc(u32 *vals, struct gt215_ltrain *train)
 static int
 gt215_link_train(struct gt215_ram *ram)
 {
-	struct gt215_ltrain *train = &ram->ltrain;
+	struct gt215_ram_train_ddr3 *train = &ram->ltrain;
 	struct gt215_ramfuc *fuc = &ram->fuc;
 	struct nvkm_subdev *subdev = &ram->base.fb->subdev;
 	struct nvkm_device *device = subdev->device;
@@ -288,6 +288,7 @@ gt215_ram_train_type(struct nvkm_ram *ram, int i, u8 ramcfg,
 	case 0x00: value = &train->type00; break;
 	case 0x01: value = &train->type01; break;
 	case 0x04: value = &train->type04; break;
+	case 0x05: value = &train->type05; break;
 	case 0x06: value = &train->type06; break;
 	case 0x07: value = &train->type07; break;
 	case 0x08: value = &train->type08; break;
@@ -321,7 +322,7 @@ gt215_ram_train_type(struct nvkm_ram *ram, int i, u8 ramcfg,
 		for (i = 0; i < ARRAY_SIZE(value->data); i++)
 			value->data[i] = remap->data[value->data[i]];
 	} else
-	if (M0209E.v02_07 != 1)
+	if (M0209E.v02_07 > 2)
 		return -EINVAL;
 
 	train->mask |= 1 << M0205E.type;
@@ -329,7 +330,49 @@ gt215_ram_train_type(struct nvkm_ram *ram, int i, u8 ramcfg,
 }
 
 static int
-gt215_link_train_init(struct gt215_ram *ram)
+gt215_ram_train_upload_gddr5(struct nvkm_ram *ram,
+		struct gt215_ram_train *train)
+{
+	struct nvkm_subdev *subdev = &ram->fb->subdev;
+	struct nvkm_device *device = subdev->device;
+	int i, j;
+
+	static const u32 off[] = {0x00, 0x20, 0x04, 0x24};
+
+	if ((train->mask & 0x03c3) != 0x03c3) {
+		nvkm_debug(subdev,
+			"missing link training data, not uploading patterns\n");
+		return 0;
+	}
+
+	for (j = 0; j < 4; j++) {
+		for (i = 0; i < 0x80; i++) {
+			nvkm_wr32(device, 0x10f8c0 + off[j], (i << 8) | i);
+			if (i < 0x30) {
+				nvkm_wr32(device, 0x10f940 + off[j],
+						0x00000000 |
+						train->type08.data[i] << 4 |
+						train->type06.data[i]);
+				nvkm_wr32(device, 0x10f900 + off[j],
+						train->type00.data[i]);
+				nvkm_wr32(device, 0x10f940 + off[j],
+						0x00000100 |
+						train->type09.data[i] << 4 |
+						train->type07.data[i]);
+				nvkm_wr32(device, 0x10f900 + off[j],
+						train->type01.data[i]);
+			}
+			nvkm_wr32(device, 0x10f840 + off[j], 0x00000000 | i);
+			nvkm_wr32(device, 0x10f840 + off[j], 0x01000000 | i);
+		}
+	}
+
+	return 0;
+}
+
+static int
+gt215_ram_train_upload_ddr3(struct nvkm_ram *ram,
+		struct gt215_ram_train *train)
 {
 	static const u32 pattern[16] = {
 		0xaaaaaaaa, 0xcccccccc, 0xdddddddd, 0xeeeeeeee,
@@ -337,33 +380,28 @@ gt215_link_train_init(struct gt215_ram *ram)
 		0x33333333, 0x55555555, 0x77777777, 0x66666666,
 		0x99999999, 0x88888888, 0xeeeeeeee, 0xbbbbbbbb,
 	};
-	struct gt215_ltrain *train = &ram->ltrain;
-	struct nvkm_device *device = ram->base.fb->subdev.device;
-	struct nvkm_bios *bios = device->bios;
+	struct gt215_ram *gt215 = gt215_ram(ram);
+	struct gt215_ram_train_ddr3 *train_ddr3 = &gt215->ltrain;
+	struct nvkm_device *device = ram->fb->subdev.device;
 	struct nvkm_mem *mem;
-	struct nvbios_M0205E M0205E;
-	u8 ver, hdr, cnt, len;
 	u32 r001700;
 	int ret, i = 0;
 
-	train->state = NVA3_TRAIN_UNSUPPORTED;
+	train_ddr3->state = NVA3_TRAIN_UNSUPPORTED;
 
 	/* We support type "5"
 	 * XXX: training pattern table appears to be unused for this routine */
-	if (!nvbios_M0205Ep(bios, i, &ver, &hdr, &cnt, &len, &M0205E))
-		return -ENOENT;
-
-	if (M0205E.type != 5)
+	if ((train->mask & 0x0020) != 0x0020)
 		return 0;
 
-	train->state = NVA3_TRAIN_ONCE;
+	train_ddr3->state = NVA3_TRAIN_ONCE;
 
-	ret = ram->base.func->get(&ram->base, 0x8000, 0x10000, 0, 0x800,
-				  &ram->ltrain.mem);
+	ret = ram->func->get(ram, 0x8000, 0x10000, 0, 0x800,
+				  &train_ddr3->mem);
 	if (ret)
 		return ret;
 
-	mem = ram->ltrain.mem;
+	mem = train_ddr3->mem;
 
 	nvkm_wr32(device, 0x100538, 0x10000000 | (mem->offset >> 16));
 	nvkm_wr32(device, 0x1005a8, 0x0000ffff);
@@ -388,17 +426,50 @@ gt215_link_train_init(struct gt215_ram *ram)
 		nvkm_wr32(device, 0x700100 + (i << 2), pattern[i]);
 	nvkm_wr32(device, 0x1700, r001700);
 
-	train->r_100720 = nvkm_rd32(device, 0x100720);
-	train->r_1111e0 = nvkm_rd32(device, 0x1111e0);
-	train->r_111400 = nvkm_rd32(device, 0x111400);
+	train_ddr3->r_100720 = nvkm_rd32(device, 0x100720);
+	train_ddr3->r_1111e0 = nvkm_rd32(device, 0x1111e0);
+	train_ddr3->r_111400 = nvkm_rd32(device, 0x111400);
 	return 0;
 }
 
-static void
-gt215_link_train_fini(struct gt215_ram *ram)
+int
+gt215_ram_train_init(struct nvkm_ram *ram)
 {
-	if (ram->ltrain.mem)
-		ram->base.func->put(&ram->base, &ram->ltrain.mem);
+	u8 ramcfg = nvbios_ramcfg_index(&ram->fb->subdev);
+	struct gt215_ram_train *train;
+	int ret, i;
+
+	if (!(train = kzalloc(sizeof(*train), GFP_KERNEL)))
+		return -ENOMEM;
+
+	for (i = 0; i < 0x100; i++) {
+		ret = gt215_ram_train_type(ram, i, ramcfg, train);
+		if (ret && ret != -ENOENT)
+			break;
+	}
+
+	switch (ram->type) {
+	case NVKM_RAM_TYPE_GDDR5:
+		ret = gt215_ram_train_upload_gddr5(ram, train);
+		break;
+	case NVKM_RAM_TYPE_DDR3:
+		ret = gt215_ram_train_upload_ddr3(ram, train);
+		break;
+	default:
+		ret = 0;
+		break;
+	}
+
+	kfree(train);
+	return ret;
+}
+
+static void
+gt215_ram_train_fini(struct nvkm_ram *ram)
+{
+	struct gt215_ram *gt215 = gt215_ram(ram);
+	if (gt215->ltrain.mem)
+		ram->func->put(ram, &gt215->ltrain.mem);
 }
 
 /*
@@ -554,7 +625,7 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 {
 	struct gt215_ram *ram = gt215_ram(base);
 	struct gt215_ramfuc *fuc = &ram->fuc;
-	struct gt215_ltrain *train = &ram->ltrain;
+	struct gt215_ram_train_ddr3 *train = &ram->ltrain;
 	struct nvkm_subdev *subdev = &ram->base.fb->subdev;
 	struct nvkm_device *device = subdev->device;
 	struct nvkm_bios *bios = device->bios;
@@ -979,8 +1050,7 @@ gt215_ram_tidy(struct nvkm_ram *base)
 static int
 gt215_ram_init(struct nvkm_ram *base)
 {
-	struct gt215_ram *ram = gt215_ram(base);
-	gt215_link_train_init(ram);
+	gt215_ram_train_init(base);
 	return 0;
 }
 
@@ -988,7 +1058,7 @@ static void *
 gt215_ram_dtor(struct nvkm_ram *base)
 {
 	struct gt215_ram *ram = gt215_ram(base);
-	gt215_link_train_fini(ram);
+	gt215_ram_train_fini(base);
 	return ram;
 }
 

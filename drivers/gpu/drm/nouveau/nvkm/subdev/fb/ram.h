@@ -60,6 +60,7 @@ struct gt215_ram_train {
 	struct nvbios_M0209S type00;
 	struct nvbios_M0209S type01;
 	struct nvbios_M0209S type04;
+	struct nvbios_M0209S type05;
 	struct nvbios_M0209S type06;
 	struct nvbios_M0209S type07;
 	struct nvbios_M0209S type08;
