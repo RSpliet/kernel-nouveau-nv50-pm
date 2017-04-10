@@ -104,6 +104,7 @@ nvbios_timingEp(struct nvkm_bios *bios, int idx,
 		p->timing_10_ODT   = nvbios_rd08(bios, data + 0x0e) & 0x07;
 		if (p->ramcfg_ver >= 0x10)
 			p->ramcfg_RON = nvbios_rd08(bios, data + 0x0e) & 0x07;
+		p->timing_10_DS    = nvbios_rd08(bios, data + 0xe) & 0x30 >> 4;
 
 		p->timing_10_18  = 0xff;
 		p->timing_10_CKE = 0;
@@ -117,6 +118,7 @@ nvbios_timingEp(struct nvkm_bios *bios, int idx,
 			p->timing_10_18  = nvbios_rd08(bios, data + 0x18);
 		case 0x18:
 		case 0x17:
+			p->timing_10_ADRCMD_T = nvbios_rd08(bios, data + 0x16);
 		case 0x16:
 			p->timing_10_CKE = nvbios_rd08(bios, data + 0x15);
 		case 0x15:

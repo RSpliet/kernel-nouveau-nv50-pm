@@ -40,6 +40,10 @@ struct nvbios_ramcfg {
 	unsigned ramcfg_DLLoff;
 	unsigned ramcfg_RON;
 	unsigned ramcfg_FBVDDQ;
+	unsigned ramcfg_LowFreq;
+	unsigned ramcfg_WCKPin;
+	unsigned ramcfg_Hf_VREF;
+	unsigned ramcfg_VREFD_off;
 	union {
 		struct {
 			unsigned ramcfg_00_03_01:1;
@@ -82,12 +86,9 @@ struct nvbios_ramcfg {
 			unsigned ramcfg_11_01_04:1;
 			unsigned ramcfg_11_01_08:1;
 			unsigned ramcfg_11_01_10:1;
-			unsigned ramcfg_11_01_40:1;
-			unsigned ramcfg_11_01_80:1;
 			unsigned ramcfg_11_02_03:2;
 			unsigned ramcfg_11_02_04:1;
 			unsigned ramcfg_11_02_08:1;
-			unsigned ramcfg_11_02_10:1;
 			unsigned ramcfg_11_02_40:1;
 			unsigned ramcfg_11_02_80:1;
 			unsigned ramcfg_11_03_0f:4;
@@ -95,7 +96,6 @@ struct nvbios_ramcfg {
 			unsigned ramcfg_11_03_c0:2;
 			unsigned ramcfg_11_03_f0:4;
 			unsigned ramcfg_11_04:8;
-			unsigned ramcfg_11_06:8;
 			unsigned ramcfg_11_07_02:1;
 			unsigned ramcfg_11_07_04:1;
 			unsigned ramcfg_11_07_08:1;
@@ -132,6 +132,7 @@ struct nvbios_ramcfg {
 			unsigned timing_10_RRD:8;
 			unsigned timing_10_XPDLL:8;
 			unsigned timing_10_ODT:3;
+			unsigned timing_10_DS:2;
 			/* empty: 15 */
 			unsigned timing_10_10:8;
 			/* empty: 17 */
@@ -139,7 +140,8 @@ struct nvbios_ramcfg {
 			unsigned timing_10_CWL:8;
 			unsigned timing_10_FAW:8;
 			unsigned timing_10_CKE:8;
-			/* empty: 22, 23 */
+			unsigned timing_10_ADRCMD_T:8;  /* XXX: [3:2]? */
+			/* empty: 23 */
 			unsigned timing_10_18:8;
 		};
 		struct {

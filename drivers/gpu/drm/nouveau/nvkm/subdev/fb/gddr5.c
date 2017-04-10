@@ -39,14 +39,18 @@ nvkm_gddr5_calc(struct nvkm_ram *ram, bool nuts)
 	int rq = ram->freq < 1000000; /* XXX */
 
 	xd = !ram->next->bios.ramcfg_DLLoff;
+	lf =  ram->next->bios.ramcfg_LowFreq;
+	pd =  ram->next->bios.ramcfg_WCKPin;
+	vh =  ram->next->bios.ramcfg_Hf_VREF;
+	vo =  ram->next->bios.ramcfg_VREFD_off;
 
 	switch (ram->next->bios.ramcfg_ver) {
+	case 0x10:
+		vr = 0;
+		l3 = (ram->mr[5] & 0x4) >> 2;
+		break;
 	case 0x11:
-		pd =  ram->next->bios.ramcfg_11_01_80;
-		lf =  ram->next->bios.ramcfg_11_01_40;
-		vh =  ram->next->bios.ramcfg_11_02_10;
 		vr =  ram->next->bios.ramcfg_11_02_04;
-		vo =  ram->next->bios.ramcfg_11_06;
 		l3 = !ram->next->bios.ramcfg_11_07_02;
 		break;
 	default:
@@ -54,6 +58,15 @@ nvkm_gddr5_calc(struct nvkm_ram *ram, bool nuts)
 	}
 
 	switch (ram->next->bios.timing_ver) {
+	case 0x10:
+		WL = ram->next->bios.timing_10_CWL;
+		CL = ram->next->bios.timing_10_CL;
+		WR = ram->next->bios.timing_10_WR;
+		at[0] = ram->next->bios.timing_10_ADRCMD_T & 0x3;
+		at[1] = 0;
+		dt = ram->next->bios.timing_10_ODT;
+		ds = ram->next->bios.timing_10_DS;
+		break;
 	case 0x20:
 		WL = (ram->next->bios.timing[1] & 0x00000f80) >> 7;
 		CL = (ram->next->bios.timing[1] & 0x0000001f);
