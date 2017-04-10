@@ -556,7 +556,7 @@ gf100_ram_train_init_0(struct nvkm_ram *ram, struct gt215_ram_train *train)
 	struct nvkm_device *device = subdev->device;
 	int i, j;
 
-	if ((train->mask & 0x03d3) != 0x03d3) {
+	if ((train->mask & 0x03c3) != 0x03c3) {
 		nvkm_warn(subdev, "missing link training data\n");
 		return -EINVAL;
 	}
@@ -575,10 +575,13 @@ gf100_ram_train_init_0(struct nvkm_ram *ram, struct gt215_ram_train *train)
 		}
 	}
 
-	for (j = 0; j < 8; j += 4) {
-		for (i = 0; i < 0x100; i++) {
-			nvkm_wr32(device, 0x10f968 + j, i);
-			nvkm_wr32(device, 0x10f900 + j, train->type04.data[i]);
+	if (train->mask & 0x10) {
+		for (j = 0; j < 8; j += 4) {
+			for (i = 0; i < 0x100; i++) {
+				nvkm_wr32(device, 0x10f968 + j, i);
+				nvkm_wr32(device, 0x10f900 + j,
+						train->type04.data[i]);
+			}
 		}
 	}
 
