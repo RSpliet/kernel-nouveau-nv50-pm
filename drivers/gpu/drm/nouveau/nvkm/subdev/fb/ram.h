@@ -1,6 +1,7 @@
 #ifndef __NVKM_FB_RAM_PRIV_H__
 #define __NVKM_FB_RAM_PRIV_H__
 #include "priv.h"
+#include <subdev/bios/M0209.h>
 
 int  nvkm_ram_ctor(const struct nvkm_ram_func *, struct nvkm_fb *,
 		   enum nvkm_ram_type, u64 size, u32 tags,
@@ -51,6 +52,22 @@ u32 gm107_ram_probe_fbp(const struct nvkm_ram_func *,
 
 u32 gm200_ram_probe_fbp_amount(const struct nvkm_ram_func *, u32,
 			       struct nvkm_device *, int, int *);
+
+/* DDR link training */
+struct gt215_ram_train {
+	u16 mask;
+	struct nvbios_M0209S remap;
+	struct nvbios_M0209S type00;
+	struct nvbios_M0209S type01;
+	struct nvbios_M0209S type04;
+	struct nvbios_M0209S type06;
+	struct nvbios_M0209S type07;
+	struct nvbios_M0209S type08;
+	struct nvbios_M0209S type09;
+};
+int gt215_ram_train_type(struct nvkm_ram *ram, int i, u8 ramcfg,
+		     struct gt215_ram_train *train);
+int gf100_ram_train_init(struct nvkm_ram *ram);
 
 /* RAM type-specific MR calculation routines */
 int nvkm_sddr2_calc(struct nvkm_ram *);

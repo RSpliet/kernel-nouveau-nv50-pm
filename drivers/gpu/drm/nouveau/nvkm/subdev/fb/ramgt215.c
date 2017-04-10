@@ -267,6 +267,67 @@ out:
 	return ret;
 }
 
+int
+gt215_ram_train_type(struct nvkm_ram *ram, int i, u8 ramcfg,
+		     struct gt215_ram_train *train)
+{
+	struct nvkm_bios *bios = ram->fb->subdev.device->bios;
+	struct nvbios_M0205E M0205E;
+	struct nvbios_M0205S M0205S;
+	struct nvbios_M0209E M0209E;
+	struct nvbios_M0209S *remap = &train->remap;
+	struct nvbios_M0209S *value;
+	u8  ver, hdr, cnt, len;
+	u32 data;
+
+	/* determine type of data for this index */
+	if (!(data = nvbios_M0205Ep(bios, i, &ver, &hdr, &cnt, &len, &M0205E)))
+		return -ENOENT;
+
+	switch (M0205E.type) {
+	case 0x00: value = &train->type00; break;
+	case 0x01: value = &train->type01; break;
+	case 0x04: value = &train->type04; break;
+	case 0x06: value = &train->type06; break;
+	case 0x07: value = &train->type07; break;
+	case 0x08: value = &train->type08; break;
+	case 0x09: value = &train->type09; break;
+	default:
+		return 0;
+	}
+
+	/* training data index determined by ramcfg strap */
+	if (!(data = nvbios_M0205Sp(bios, i, ramcfg, &ver, &hdr, &M0205S)))
+		return -EINVAL;
+	i = M0205S.data;
+
+	/* training data format information */
+	if (!(data = nvbios_M0209Ep(bios, i, &ver, &hdr, &cnt, &len, &M0209E)))
+		return -EINVAL;
+
+	/* ... and the raw data */
+	if (!(data = nvbios_M0209Sp(bios, i, 0, &ver, &hdr, value)))
+		return -EINVAL;
+
+	if (M0209E.v02_07 == 2) {
+		/* of course! why wouldn't we have a pointer to another entry
+		 * in the same table, and use the first one as an array of
+		 * remap indices...
+		 */
+		if (!(data = nvbios_M0209Sp(bios, M0209E.v03, 0, &ver, &hdr,
+					    remap)))
+			return -EINVAL;
+
+		for (i = 0; i < ARRAY_SIZE(value->data); i++)
+			value->data[i] = remap->data[value->data[i]];
+	} else
+	if (M0209E.v02_07 != 1)
+		return -EINVAL;
+
+	train->mask |= 1 << M0205E.type;
+	return 0;
+}
+
 static int
 gt215_link_train_init(struct gt215_ram *ram)
 {
