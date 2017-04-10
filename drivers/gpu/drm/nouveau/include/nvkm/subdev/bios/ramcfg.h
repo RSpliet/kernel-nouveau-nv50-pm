@@ -14,6 +14,9 @@ struct nvbios_ramcfg {
 		struct {
 			unsigned rammap_10_04_02:1;
 			unsigned rammap_10_04_08:1;
+			unsigned rammap_10_04_40:1;
+			unsigned rammap_10_0d_01:1;
+			unsigned rammap_10_0d_02:1;
 		};
 		struct {
 			unsigned rammap_11_08_01:1;
@@ -40,6 +43,7 @@ struct nvbios_ramcfg {
 	unsigned ramcfg_DLLoff;
 	unsigned ramcfg_RON;
 	unsigned ramcfg_FBVDDQ;
+	unsigned ramcfg_FBVREF;
 	unsigned ramcfg_LowFreq;
 	unsigned ramcfg_WCKPin;
 	unsigned ramcfg_Hf_VREF;
@@ -79,6 +83,9 @@ struct nvbios_ramcfg {
 			unsigned ramcfg_10_08:8;
 			unsigned ramcfg_10_09_0f:4;
 			unsigned ramcfg_10_09_f0:4;
+			unsigned ramcfg_10_0a_0f:4;
+			unsigned ramcfg_10_0b_0f:4;
+			unsigned ramcfg_10_0d_0f:4;
 		};
 		struct {
 			unsigned ramcfg_11_01_01:1;
