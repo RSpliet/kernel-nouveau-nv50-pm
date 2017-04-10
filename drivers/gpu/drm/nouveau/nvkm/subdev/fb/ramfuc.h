@@ -160,6 +160,13 @@ ramfuc_unblock(struct ramfuc *ram)
 	nvkm_memx_unblock(ram->memx);
 }
 
+static inline void
+ramfuc_init_run(struct ramfuc *ram, struct nvkm_bios *bios, u16 offset,
+		u8 ramcfg)
+{
+	nvkm_memx_init_run(ram->memx, bios, offset, ramcfg);
+}
+
 #define ram_init(s,p)        ramfuc_init(&(s)->base, (p))
 #define ram_exec(s,e)        ramfuc_exec(&(s)->base, (e))
 #define ram_have(s,r)        ((s)->r_##r.addr != 0x000000)
@@ -174,4 +181,5 @@ ramfuc_unblock(struct ramfuc *ram)
 #define ram_train_result(s,r,l) ramfuc_train_result((s), (r), (l))
 #define ram_block(s)         ramfuc_block(&(s)->base)
 #define ram_unblock(s)       ramfuc_unblock(&(s)->base)
+#define ram_init_run(s,b,o,r) ramfuc_init_run(&(s)->base, (b), (o), (r))
 #endif
