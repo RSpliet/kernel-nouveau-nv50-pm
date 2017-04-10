@@ -213,3 +213,17 @@ nvbios_perf_fan_parse(struct nvkm_bios *bios,
 
 	return 0;
 }
+
+u16
+nvbios_perf_script_unk1c(struct nvkm_bios *bios)
+{
+	struct bit_entry bit_P;
+
+	if (!bit_entry(bios, 'P', &bit_P)) {
+		if (bit_P.version == 2) {
+			return nvbios_rd16(bios, bit_P.offset + 0x1c);
+		}
+	}
+
+	return 0x0000;
+}

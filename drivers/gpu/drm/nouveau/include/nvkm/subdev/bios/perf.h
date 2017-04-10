@@ -40,4 +40,5 @@ struct nvbios_perf_fan {
 };
 
 int nvbios_perf_fan_parse(struct nvkm_bios *, struct nvbios_perf_fan *);
+u16 nvbios_perf_script_unk1c(struct nvkm_bios *bios);
 #endif
