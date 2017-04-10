@@ -373,7 +373,7 @@ gt215_ram_timing_calc(struct gt215_ram *ram, u32 *timing)
 
 	timing[0] = (T(RP) << 24 | T(RAS) << 16 | T(RFC) << 8 | T(RC));
 	timing[1] = (T(WR) + 1 + T(CWL)) << 24 |
-		    max_t(u8,T(18), 1) << 16 |
+		    max_t(u8,T(12), 1) << 16 |
 		    (T(WTR) + 1 + T(CWL)) << 8 |
 		    (5 + T(CL) - T(CWL));
 	timing[2] = (T(CWL) - 1) << 24 |
@@ -384,10 +384,10 @@ gt215_ram_timing_calc(struct gt215_ram *ram, u32 *timing)
 		    (0x30 + T(CL)) << 24 |
 		    (0xb + T(CL)) << 8 |
 		    (T(CL) - 1);
-	timing[4] = T(20) << 24 |
-		    T(21) << 16 |
-		    T(13) << 8 |
-		    T(13);
+	timing[4] = T(14) << 24 |
+		    T(15) << 16 |
+		    T(0d) << 8 |
+		    T(0d);
 	timing[5] = T(RFC) << 24 |
 		    max_t(u8,T(RCDRD), T(RCDWR)) << 16 |
 		    max_t(u8, (T(CWL) + 6), (T(CL) + 2)) << 8 |
@@ -819,9 +819,9 @@ gt215_ram_calc(struct nvkm_ram *base, u32 freq)
 		unk718 |= 0x00000100;
 	if (next->bios.ramcfg_10_02_01)
 		unk71c |= 0x00000100;
-	if (next->bios.timing_10_24 != 0xff) {
+	if (next->bios.timing_10_18 != 0xff) {
 		unk718 &= ~0xf0000000;
-		unk718 |= next->bios.timing_10_24 << 28;
+		unk718 |= next->bios.timing_10_18 << 28;
 	}
 	if (next->bios.ramcfg_10_02_10)
 		r111100 &= ~0x04020000;
