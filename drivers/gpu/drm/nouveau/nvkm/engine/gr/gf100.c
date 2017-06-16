@@ -1799,6 +1799,7 @@ gf100_gr_ = {
 	.chan_new = gf100_gr_chan_new,
 	.object_get = gf100_gr_object_get,
 	.chsw_load = gf100_gr_chsw_load,
+	.grctx_debug_dump_stack = gf100_grctx_debug_dump_stack,
 };
 
 int

@@ -21,6 +21,7 @@ struct nvkm_engine_func {
 	void (*intr)(struct nvkm_engine *);
 	void (*tile)(struct nvkm_engine *, int region, struct nvkm_fb_tile *);
 	bool (*chsw_load)(struct nvkm_engine *);
+	void (*grctx_debug_dump_stack)(struct nvkm_engine *);
 
 	struct {
 		int (*sclass)(struct nvkm_oclass *, int index,

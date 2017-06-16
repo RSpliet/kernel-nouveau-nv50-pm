@@ -35,6 +35,14 @@ nvkm_gr_chsw_load(struct nvkm_engine *engine)
 }
 
 static void
+nvkm_grctx_debug_dump_stack(struct nvkm_engine *engine)
+{
+	struct nvkm_gr *gr = nvkm_gr(engine);
+	if (gr->func->grctx_debug_dump_stack)
+		gr->func->grctx_debug_dump_stack(gr);
+}
+
+static void
 nvkm_gr_tile(struct nvkm_engine *engine, int region, struct nvkm_fb_tile *tile)
 {
 	struct nvkm_gr *gr = nvkm_gr(engine);
@@ -142,6 +150,7 @@ nvkm_gr = {
 	.intr = nvkm_gr_intr,
 	.tile = nvkm_gr_tile,
 	.chsw_load = nvkm_gr_chsw_load,
+	.grctx_debug_dump_stack = nvkm_grctx_debug_dump_stack,
 	.fifo.cclass = nvkm_gr_cclass_new,
 	.fifo.sclass = nvkm_gr_oclass_get,
 };

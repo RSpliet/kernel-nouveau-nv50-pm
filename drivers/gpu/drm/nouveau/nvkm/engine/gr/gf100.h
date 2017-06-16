@@ -225,6 +225,8 @@ int gk20a_gr_av_to_method(struct gf100_gr *, const char *,
 int gm200_gr_new_(const struct gf100_gr_func *, struct nvkm_device *, int,
 		  struct nvkm_gr **);
 
+void gf100_grctx_debug_dump_stack(struct nvkm_gr *gr);
+
 /* register init value lists */
 
 extern const struct gf100_gr_init gf100_gr_init_main_0[];

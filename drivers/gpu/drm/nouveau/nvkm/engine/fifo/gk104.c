@@ -30,6 +30,7 @@
 #include <subdev/timer.h>
 #include <subdev/top.h>
 #include <engine/sw.h>
+#include "../gr/priv.h"
 
 #include <nvif/class.h>
 
@@ -412,6 +413,7 @@ gk104_fifo_intr_sched(struct gk104_fifo *fifo)
 {
 	struct nvkm_subdev *subdev = &fifo->base.engine.subdev;
 	struct nvkm_device *device = subdev->device;
+	struct nvkm_gr *gr = device->gr;
 	u32 intr = nvkm_rd32(device, 0x00254c);
 	u32 code = intr & 0x000000ff;
 	const struct nvkm_enum *en =
@@ -421,6 +423,8 @@ gk104_fifo_intr_sched(struct gk104_fifo *fifo)
 
 	switch (code) {
 	case 0x0a:
+		if (gr && gr->func->grctx_debug_dump_stack)
+			gr->func->grctx_debug_dump_stack(gr);
 		gk104_fifo_intr_sched_ctxsw(fifo);
 		break;
 	default:
